@@ -55,6 +55,11 @@ export const SKILL_COVERAGE: Record<string, SkillCoverage> = {
     periodic: [],
     rationale: 'qa-only is qa with --report-only; behavior tested via /qa coverage.',
   },
+  'production-implement': {
+    gate: ['test/production-engine/preos-core.test.ts', 'test/production-engine/codex-generation.test.ts', 'test/skill-coverage-floor.test.ts'],
+    periodic: [],
+    rationale: 'PREOS Stage 5 has deterministic contract/control/authority/evidence/recovery checks plus Codex host-generation coverage.',
+  },
   investigate: {
     gate: ['test/skill-coverage-floor.test.ts'],
     periodic: [],
@@ -78,6 +83,11 @@ export const SKILL_COVERAGE: Record<string, SkillCoverage> = {
   },
 
   // ─── Plan triad ─────────────────────────────────────────────
+  'project-init': {
+    gate: ['test/production-engine/preos-core.test.ts', 'test/production-engine/codex-generation.test.ts', 'test/skill-coverage-floor.test.ts'],
+    periodic: [],
+    rationale: 'PREOS Stage 0 has deterministic source/contract safety checks plus Codex host-generation coverage.',
+  },
   'plan-ceo-review': {
     gate: [
       'test/skill-e2e-plan-ceo-finding-floor.test.ts',
