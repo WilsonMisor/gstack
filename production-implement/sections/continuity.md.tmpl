@@ -1,0 +1,38 @@
+## Deterministic continuity and recovery
+
+Conversation memory is convenience, never authoritative state.
+
+Runtime state lives under `${GSTACK_STATE_ROOT}/projects/<slug>/production/`:
+
+- `PIPELINE-STATE.json`
+- `CURRENT-STATE.json`
+- `implementation-ledger.jsonl` (append-only)
+- `approval-state.json`
+- `evidence-index.json`
+- `recovery-events.jsonl`
+- `checkpoints/`
+
+Use `state-write.ts` for state transitions. Keep gstack `/context-save` and `/context-restore` for human-readable context; do not duplicate or replace them.
+
+### Checkpoints
+
+- **Soft checkpoint:** runtime state + append-only ledger; no Git commit.
+- **Hard checkpoint:** after a coherent IU passes tests/evidence: verified code, evidence/ledger, gstack context checkpoint and a Git commit if the repository workflow permits it.
+
+Checkpoint at meaningful events: before/after IU, risky operation, human gate, migration, successful verification/build, and Stage-5 completion.
+
+### Recovery
+
+When the user says "start from the last session" or Stage 5 resumes:
+
+1. identify project;
+2. load pipeline/current state and latest ledger/context checkpoint;
+3. inspect branch/HEAD/working tree/untracked state;
+4. compare recorded safe state to reality;
+5. validate state integrity;
+6. rerun incomplete verification;
+7. preserve pending human approval as pending;
+8. disagreement => `RECOVERY_CONFLICT`;
+9. resume at the first unverified action.
+
+Display project, pipeline stage, approved plan, last verified IU, current IU, last safe action, next unverified action, tree reconciliation, pending gate and exact resume point.

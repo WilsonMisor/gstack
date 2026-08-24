@@ -1,0 +1,12 @@
+{
+  "skill": "production-implement",
+  "sections": [
+    {"id":"preflight","file":"preflight.md","title":"Contract, plan and recovery preflight","trigger":"before any application-code mutation"},
+    {"id":"applicability","file":"applicability.md","title":"75-control and PREOS applicability","trigger":"after preflight and before Implementation Units"},
+    {"id":"implementation-units","file":"implementation-units.md","title":"Implementation Unit planning","trigger":"before editing code"},
+    {"id":"implementation","file":"implementation.md","title":"Production implementation loop","trigger":"for every approved Implementation Unit"},
+    {"id":"verification","file":"verification.md","title":"Testing, evidence and self-attack","trigger":"after each coherent implementation change"},
+    {"id":"continuity","file":"continuity.md","title":"Deterministic checkpoint and recovery","trigger":"before/after risky operations and whenever resuming"},
+    {"id":"completion","file":"completion.md","title":"Stage-5 completeness audit","trigger":"before handing off to review"}
+  ]
+}

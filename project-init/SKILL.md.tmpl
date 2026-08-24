@@ -1,0 +1,62 @@
+---
+name: project-init
+preamble-tier: 3
+version: 1.0.0
+description: |
+  Stage 0 of the PREOS production pipeline. Safely ingest a project folder, ZIP, repository,
+  and/or external source documents; resolve source authority; build a versioned Project Contract;
+  record roles, risk/economic context, assumptions, conflicts, and approvals before planning or code.
+  Use for a new project, a newly supplied source-of-truth package, or when authoritative sources changed.
+  This skill never writes application code. (gstack PREOS)
+voice-triggers:
+  - "initialize project"
+  - "project init"
+  - "ingest project package"
+allowed-tools:
+  - Bash
+  - Read
+  - Write
+  - Glob
+  - Grep
+  - AskUserQuestion
+---
+
+{{PREAMBLE}}
+
+# /project-init — Stage 0 Project Contract
+
+**IRON LAW:** No application-code mutation. This stage establishes authoritative project state only.
+Original user source material is immutable input. Derived artifacts index it; they do not rewrite it.
+
+{{SECTION_INDEX:project-init}}
+
+## Canonical output root
+
+Write project-governance artifacts under `<project-root>/.gstack/project-contract/`:
+
+- `PROJECT-CONTRACT.json` and `PROJECT-CONTRACT.md`
+- `source-manifest.json`
+- `source-authority.json`
+- `requirements-index.json`
+- `architecture-index.json`
+- `tech-stack.json`
+- `constraints.json`
+- `source-conflicts.json`
+- `assumption-register.jsonl`
+- `decision-log.jsonl`
+- `approval-log.jsonl`
+- `traceability.json`
+- `contract-version.json`
+- `domain-skill-bindings.json`
+
+The contract is CURRENT only while all authoritative source hashes still match.
+
+{{SECTION:source-intake}}
+
+{{SECTION:authority-resolution}}
+
+{{SECTION:project-contract}}
+
+{{SECTION:context-and-preos}}
+
+{{SECTION:completion}}

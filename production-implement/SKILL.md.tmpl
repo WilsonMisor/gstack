@@ -1,0 +1,47 @@
+---
+name: production-implement
+preamble-tier: 3
+version: 1.0.0
+description: |
+  Stage 5 of the canonical gstack PREOS pipeline. Implement an approved production plan
+  only after validating the current Project Contract, all 75 deterministic controls,
+  project-specific PREOS risks, human authority gates, implementation units, tests,
+  evidence, rollback and deterministic recovery. Emits IMPLEMENTATION COMPLETE or BLOCKED,
+  never PRODUCTION APPROVED. (gstack PREOS)
+voice-triggers:
+  - "production implement"
+  - "implement the approved plan"
+  - "build production code"
+allowed-tools:
+  - Bash
+  - Read
+  - Write
+  - Edit
+  - Glob
+  - Grep
+  - AskUserQuestion
+---
+
+{{PREAMBLE}}
+
+# /production-implement — Stage 5 Production Implementation
+
+**IRON LAW:** Code may be changed only after the Project Contract and Stage-4 plan pass preflight. Working UI or passing unit tests alone never establishes completion.
+
+Canonical external pipeline remains Stage 0 `/project-init`, 1 `/office-hours`, 2 `/plan-ceo-review`, 3 `/plan-eng-review`, 4 `/autoplan`, 5 `/production-implement`, 6 `/review`, 7 `/qa`, 8 `/ship`, 9 `/land-and-deploy`, 10 `/canary`. PREOS engines are internal intelligence, not extra mandatory stages.
+
+{{SECTION_INDEX:production-implement}}
+
+{{SECTION:preflight}}
+
+{{SECTION:applicability}}
+
+{{SECTION:implementation-units}}
+
+{{SECTION:implementation}}
+
+{{SECTION:verification}}
+
+{{SECTION:continuity}}
+
+{{SECTION:completion}}

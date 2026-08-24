@@ -1,12 +1,13 @@
 ---
 name: gstack
 preamble-tier: 1
-version: 1.2.0
+version: 1.3.0
 description: |
   Router for the gstack skill suite. Sends any gstack request to the right skill
-  (planning, review, QA, shipping, debugging, docs, security, design). For browser/QA
-  and dogfooding it points you at /browse. Use when you invoke gstack without a specific
-  skill, or ask "which gstack skill fits this?". (gstack)
+  (project intake, planning, production implementation, review, QA, shipping,
+  debugging, docs, security, design). For browser/QA and dogfooding it points you
+  at /browse. Use when you invoke gstack without a specific skill, or ask "which
+  gstack skill fits this?". (gstack)
 allowed-tools:
   - Bash
   - Read
@@ -44,7 +45,31 @@ matches a skill's purpose. Do NOT answer directly when a skill exists for the ta
 Use the Skill tool to invoke it. The skill has specialized workflows, checklists, and
 quality gates that produce better results than answering inline.
 
+## Canonical PREOS production pipeline
+
+For full production work, preserve this external Stage 0-10 pipeline exactly:
+
+0. `/project-init` — ingest project/source package and establish the Project Contract.
+1. `/office-hours` — product/problem interrogation.
+2. `/plan-ceo-review` — product and strategic scope review.
+3. `/plan-eng-review` — architecture and engineering review.
+4. `/autoplan` — consolidated planning and final human approval.
+5. `/production-implement` — production code implementation under PREOS + the immutable 75-control baseline.
+6. `/review` — independent engineering/code review.
+7. `/qa` — independent behavioural/browser QA.
+8. `/ship` — release readiness and plan-completion audit.
+9. `/land-and-deploy` — controlled merge and deployment.
+10. `/canary` — production verification.
+
+PREOS is cross-cutting intelligence inside this pipeline. Do NOT create or require extra
+mandatory `/risk-model`, `/architecture-economics`, `/production-plan`, or
+`/production-learn` stages. Existing specialist domain skills remain independent and are
+bound through the Project Contract rather than copied into gstack.
+
 **Routing rules — when you see these patterns, INVOKE the skill via the Skill tool:**
+- User supplies a project package/repo/folder/ZIP/source-of-truth documents, asks to initialize a production project, establish project truth, or begin the full Stage 0-10 pipeline → invoke `/project-init`
+- User asks to implement/build/code an already approved plan under production controls, or says the plan is approved and ready to build → invoke `/production-implement`
+- User says "start from the last session", "resume where I left off", "where was I", or asks to restore saved work → invoke `/context-restore`; if Stage 5 production state exists, `/production-implement` must then reconcile persistent state + Git before edits
 - User describes a new idea, asks "is this worth building", brainstorms, pitches a concept → invoke `/office-hours`
 - User asks to spec something out, file an issue, write up a ticket, "turn this into a GitHub issue", "backlog item" → invoke `/spec`
 - User asks about strategy, scope, ambition, "think bigger", "what should we build" → invoke `/plan-ceo-review`
@@ -71,7 +96,6 @@ quality gates that produce better results than answering inline.
 - User asks to restrict edits to a directory → invoke `/freeze` or `/unfreeze`
 - User asks to upgrade gstack → invoke `/gstack-upgrade`
 - User asks to save progress, checkpoint, "save my work" → invoke `/context-save`
-- User asks to resume, restore, "where was I" → invoke `/context-restore`
 - User asks about security, OWASP, vulnerabilities, "is this secure" → invoke `/cso`
 - User asks to make a PDF, document, publication → invoke `/make-pdf`
 - User asks to launch a real browser for QA, "open the browser" → invoke `/open-gstack-browser`

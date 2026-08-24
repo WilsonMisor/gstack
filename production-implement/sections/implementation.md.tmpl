@@ -1,0 +1,15 @@
+## Production implementation loop
+
+For each READY IU, in dependency order:
+
+1. Write a soft checkpoint before starting.
+2. Mark IU `IMPLEMENTING` in persistent state.
+3. Read only the project/domain material needed for this IU. If an independent domain skill is bound, use it for specialist implementation knowledge without copying or modifying that skill.
+4. Implement the approved coherent change. Do not expand scope because nearby cleanup is attractive.
+5. Keep business invariants explicit. Dangerous operations must be idempotent where applicable; handle duplicate, delayed, lost and out-of-order execution where the architecture can produce it.
+6. Preserve data semantics, tenant boundaries, authorization, evidence/audit and recovery requirements across every storage/processing layer.
+7. Treat economics as production behavior: rate/cost amplification, expensive providers, logs/traces, AI/verification/notification costs and tenant concentration must stay bounded.
+8. If new information invalidates the plan or applicability decision, stop, record the conflict/decision, and return to the appropriate human gate. Do not "fix forward" outside authority.
+9. Mark IU `VERIFYING` only after implementation is coherent enough to test.
+
+Never make destructive production mutations as part of Stage 5 merely because code exists to do so. Deployment remains Stage 9.

@@ -1,0 +1,209 @@
+{
+  "part": 1,
+  "range": [
+    1,
+    25
+  ],
+  "controls": [
+    {
+      "no": 1,
+      "gate_and_acceptance_condition": "Define request and response. API contract gate: every endpoint or form must have request fields, response fields, errors, and status codes before code.",
+      "applicability_rule": "Mandatory when coding any endpoint, form, route, action, webhook, API, admin action, or frontend request flow. If the work has no request flow, record not applicable with reason.",
+      "required_test": "Contract test sends valid, invalid, missing, and extra fields.",
+      "evidence_before_acceptance": "API spec or form contract, test results, sample request and response payloads.",
+      "source": "Lecture derived"
+    },
+    {
+      "no": 2,
+      "gate_and_acceptance_condition": "Choose HTTP method correctly. Method gate: reads use GET, creates use POST, replacements use PUT, partial changes use PATCH, removals use DELETE.",
+      "applicability_rule": "Mandatory when coding any endpoint, form, route, action, webhook, API, admin action, or frontend request flow. If the work has no request flow, record not applicable with reason.",
+      "required_test": "Method misuse test tries state change through GET and expects rejection.",
+      "evidence_before_acceptance": "Route table showing methods, controller tests, access logs showing correct method use.",
+      "source": "Lecture derived"
+    },
+    {
+      "no": 3,
+      "gate_and_acceptance_condition": "Use HTTPS. Transport gate: production must force encrypted traffic for all pages, APIs, forms, admin, and assets.",
+      "applicability_rule": "Mandatory when coding any endpoint, form, route, action, webhook, API, admin action, or frontend request flow. If the work has no request flow, record not applicable with reason.",
+      "required_test": "HTTP request test confirms redirect to HTTPS and no mixed content.",
+      "evidence_before_acceptance": "TLS certificate screenshot, redirect rule, security header report.",
+      "source": "Lecture derived"
+    },
+    {
+      "no": 4,
+      "gate_and_acceptance_condition": "Validate request data. Validation gate: all route, query, body, file, and form inputs must be checked against rules.",
+      "applicability_rule": "Mandatory when coding any endpoint, form, route, action, webhook, API, admin action, or frontend request flow. If the work has no request flow, record not applicable with reason.",
+      "required_test": "Invalid type, length, range, missing field, and malformed payload tests.",
+      "evidence_before_acceptance": "Validation schema, failed validation screenshots, automated test output.",
+      "source": "Lecture derived"
+    },
+    {
+      "no": 5,
+      "gate_and_acceptance_condition": "Return correct status codes. Response gate: success, client error, auth error, permission error, not found, conflict, and server error codes must be deliberate.",
+      "applicability_rule": "Mandatory when coding any endpoint, form, route, action, webhook, API, admin action, or frontend request flow. If the work has no request flow, record not applicable with reason.",
+      "required_test": "Force each failure path and verify status code plus message.",
+      "evidence_before_acceptance": "Status code matrix, API tests, error response samples.",
+      "source": "Lecture derived"
+    },
+    {
+      "no": 6,
+      "gate_and_acceptance_condition": "Define API contract. Contract stability gate: endpoint names, payloads, errors, permissions, and versions must be documented.",
+      "applicability_rule": "Mandatory when coding any endpoint, form, route, action, webhook, API, admin action, or frontend request flow. If the work has no request flow, record not applicable with reason.",
+      "required_test": "Consumer style test proves clients can rely on the contract.",
+      "evidence_before_acceptance": "OpenAPI or route contract, changelog, contract tests.",
+      "source": "Lecture derived"
+    },
+    {
+      "no": 7,
+      "gate_and_acceptance_condition": "Preserve backwards compatibility. Compatibility gate: optional additions must not break old clients or old frontend code.",
+      "applicability_rule": "Mandatory when coding any endpoint, form, route, action, webhook, API, admin action, or frontend request flow. If the work has no request flow, record not applicable with reason.",
+      "required_test": "Run old client calls against the new version.",
+      "evidence_before_acceptance": "Backward compatibility test result, migration note, release note.",
+      "source": "Lecture derived"
+    },
+    {
+      "no": 8,
+      "gate_and_acceptance_condition": "Version breaking API changes. Versioning gate: breaking changes must create a new version or migration path.",
+      "applicability_rule": "Mandatory when coding any endpoint, form, route, action, webhook, API, admin action, or frontend request flow. If the work has no request flow, record not applicable with reason.",
+      "required_test": "Old v1 request still works while v2 handles the new contract.",
+      "evidence_before_acceptance": "Versioned route list, deprecation note, dual-version test.",
+      "source": "Lecture derived"
+    },
+    {
+      "no": 9,
+      "gate_and_acceptance_condition": "Use pagination. Large data gate: no list endpoint, table, report, or admin screen may return unlimited records.",
+      "applicability_rule": "Mandatory when coding any endpoint, form, route, action, webhook, API, admin action, or frontend request flow. If the work has no request flow, record not applicable with reason.",
+      "required_test": "Seed large data and confirm limited pages.",
+      "evidence_before_acceptance": "Pagination test, page size rule, query log.",
+      "source": "Lecture derived"
+    },
+    {
+      "no": 10,
+      "gate_and_acceptance_condition": "Prefer cursor pagination for large changing data. Stable pagination gate: fast-changing lists must avoid page shifting where correctness matters.",
+      "applicability_rule": "Mandatory when coding any endpoint, form, route, action, webhook, API, admin action, or frontend request flow. If the work has no request flow, record not applicable with reason.",
+      "required_test": "Insert records during pagination and confirm no duplicates or missing records.",
+      "evidence_before_acceptance": "Cursor token design, test dataset result, endpoint sample.",
+      "source": "Lecture derived"
+    },
+    {
+      "no": 11,
+      "gate_and_acceptance_condition": "Keep GET idempotent. Safe read gate: GET must not create, update, delete, send email, charge money, or change state.",
+      "applicability_rule": "Mandatory when coding any endpoint, form, route, action, webhook, API, admin action, or frontend request flow. If the work has no request flow, record not applicable with reason.",
+      "required_test": "Call GET repeatedly and compare database state before and after.",
+      "evidence_before_acceptance": "Idempotency test, route review, database diff result.",
+      "source": "Lecture derived"
+    },
+    {
+      "no": 12,
+      "gate_and_acceptance_condition": "Add idempotency for risky writes. Duplicate safety gate: payment, webhook, import, form, email, and job retries must detect duplicates.",
+      "applicability_rule": "Mandatory when coding any endpoint, form, route, action, webhook, API, admin action, or frontend request flow. If the work has no request flow, record not applicable with reason.",
+      "required_test": "Submit the same request twice and confirm only one business effect.",
+      "evidence_before_acceptance": "Idempotency key rule, unique constraint, duplicate request test.",
+      "source": "Lecture derived"
+    },
+    {
+      "no": 13,
+      "gate_and_acceptance_condition": "Choose REST, GraphQL, or gRPC based on need. API style gate: API style must be justified by simplicity, data precision, or service performance.",
+      "applicability_rule": "Mandatory when choosing or changing an API style. Otherwise record the existing interface style and why no change is needed.",
+      "required_test": "Review one feature against overfetching, underfetching, auth, and latency needs.",
+      "evidence_before_acceptance": "Architecture decision record, interface sketch, performance assumption.",
+      "source": "Lecture derived"
+    },
+    {
+      "no": 14,
+      "gate_and_acceptance_condition": "Keep services stateless where horizontal scaling is expected. Statelessness gate: any server instance must handle the request without local-only state.",
+      "applicability_rule": "Mandatory for cloud, serverless, container, multi server, or any system expected to scale horizontally. Conditional for one server prototypes, but the reason must be recorded.",
+      "required_test": "Run the same request against two app instances.",
+      "evidence_before_acceptance": "Session storage design, load balancer test, state audit.",
+      "source": "Lecture derived"
+    },
+    {
+      "no": 15,
+      "gate_and_acceptance_condition": "Design for load balancing. Load balancer gate: the feature must work behind a reverse proxy and across multiple backend instances.",
+      "applicability_rule": "Mandatory when the app is behind a reverse proxy, CDN, load balancer, shared hosting pool, or multiple workers. Conditional for simple local builds.",
+      "required_test": "Route traffic across multiple instances and test health checks.",
+      "evidence_before_acceptance": "Health endpoint, proxy config, multi-instance smoke test.",
+      "source": "Lecture derived"
+    },
+    {
+      "no": 16,
+      "gate_and_acceptance_condition": "Avoid local-only sessions where multiple servers exist. Session gate: session data must live in a shared or appropriate stateless mechanism.",
+      "applicability_rule": "Mandatory when the app is behind a reverse proxy, CDN, load balancer, shared hosting pool, or multiple workers. Conditional for simple local builds.",
+      "required_test": "Switch server during an authenticated flow and confirm session survives or fails safely.",
+      "evidence_before_acceptance": "Session config, cookie settings, shared session store proof.",
+      "source": "Lecture derived"
+    },
+    {
+      "no": 17,
+      "gate_and_acceptance_condition": "Use queues for slow work. Async work gate: slow email, import, export, report, image, payment follow-up, and integration work must not block user requests.",
+      "applicability_rule": "Mandatory when the feature triggers slow work, retries, background jobs, emails, reports, imports, exports, integrations, or multiple follow up actions.",
+      "required_test": "Trigger slow work and confirm immediate response plus background completion.",
+      "evidence_before_acceptance": "Queue job definition, job log, completion record.",
+      "source": "Lecture derived"
+    },
+    {
+      "no": 18,
+      "gate_and_acceptance_condition": "Make consumers idempotent. Queue retry gate: every consumer must survive duplicate delivery.",
+      "applicability_rule": "Mandatory when the feature triggers slow work, retries, background jobs, emails, reports, imports, exports, integrations, or multiple follow up actions.",
+      "required_test": "Deliver same message twice and confirm one final effect.",
+      "evidence_before_acceptance": "Consumer test, deduplication rule, processed message log.",
+      "source": "Lecture derived"
+    },
+    {
+      "no": 19,
+      "gate_and_acceptance_condition": "Add retries and acknowledgements. Reliable job gate: queue work must define acknowledgement, retry, timeout, and failure rules.",
+      "applicability_rule": "Mandatory when the feature triggers slow work, retries, background jobs, emails, reports, imports, exports, integrations, or multiple follow up actions.",
+      "required_test": "Force worker crash before acknowledgement and confirm retry behaviour.",
+      "evidence_before_acceptance": "Retry policy, failed job log, acknowledgement evidence.",
+      "source": "Lecture derived"
+    },
+    {
+      "no": 20,
+      "gate_and_acceptance_condition": "Use Pub/Sub for event fan out. Event fan out gate: one domain event triggering many independent actions must use a topic or event pattern.",
+      "applicability_rule": "Mandatory when the feature triggers slow work, retries, background jobs, emails, reports, imports, exports, integrations, or multiple follow up actions.",
+      "required_test": "Publish one event and confirm each subscriber acts independently.",
+      "evidence_before_acceptance": "Topic map, subscriber logs, event contract.",
+      "source": "Lecture derived"
+    },
+    {
+      "no": 21,
+      "gate_and_acceptance_condition": "Choose SQL schema carefully. Schema gate: tables, fields, types, relationships, and constraints must be designed before code writes data.",
+      "applicability_rule": "Mandatory when the feature stores, changes, deletes, imports, exports, or relates persistent data.",
+      "required_test": "Migration creates schema and rejects invalid records.",
+      "evidence_before_acceptance": "ERD or schema document, migration file, constraint test.",
+      "source": "Lecture derived"
+    },
+    {
+      "no": 22,
+      "gate_and_acceptance_condition": "Use primary keys. Identity gate: every persistent record must have a stable primary key or equivalent unique identity.",
+      "applicability_rule": "Mandatory when the feature stores, changes, deletes, imports, exports, or relates persistent data.",
+      "required_test": "Create, read, update, delete, and join records by the key.",
+      "evidence_before_acceptance": "Schema proof, migration file, CRUD test.",
+      "source": "Lecture derived"
+    },
+    {
+      "no": 23,
+      "gate_and_acceptance_condition": "Use foreign keys where needed. Referential integrity gate: related records must not become orphaned where the database can enforce integrity.",
+      "applicability_rule": "Mandatory when the feature stores, changes, deletes, imports, exports, or relates persistent data.",
+      "required_test": "Try deleting or inserting invalid related records.",
+      "evidence_before_acceptance": "Foreign key migration, constraint violation test, cascade rule.",
+      "source": "Lecture derived"
+    },
+    {
+      "no": 24,
+      "gate_and_acceptance_condition": "Use constraints. Data validity gate: not null, unique, check, length, status, and ownership constraints must protect important invariants.",
+      "applicability_rule": "Mandatory when the feature stores, changes, deletes, imports, exports, or relates persistent data.",
+      "required_test": "Attempt invalid insert or update and expect rejection.",
+      "evidence_before_acceptance": "Constraint list, database test, failed invalid write output.",
+      "source": "Lecture derived"
+    },
+    {
+      "no": 25,
+      "gate_and_acceptance_condition": "Use indexes. Query performance gate: lookup, filter, sort, join, ownership, tenant, and pagination fields must be indexed where growth requires it.",
+      "applicability_rule": "Mandatory when the feature stores, changes, deletes, imports, exports, or relates persistent data.",
+      "required_test": "Run explain plan or query timing on seeded data.",
+      "evidence_before_acceptance": "Index list, explain output, before and after timing.",
+      "source": "Lecture derived"
+    }
+  ]
+}

@@ -18,16 +18,13 @@ const codex = defineHost({
 
   // generateMetadata emits agents/openai.yaml (the format is hardcoded in
   // gen-skill-docs.ts). Codex also gets a repo-local sidecar at
-  // .agents/skills/gstack (symlinked runtime assets: bin, browse, review, qa,
-  // ETHOS.md) — that behavior lives in setup's create_agents_sidecar, not here.
+  // .agents/skills/gstack. PREOS adds shared runtime references + deterministic
+  // production-engine helpers to that sidecar; skill definitions remain generated.
   generation: {
     generateMetadata: true,
-    skipSkills: ['codex'],  // Codex skill is a Claude wrapper around codex exec
+    skipSkills: ['codex'],
   },
 
-  // Non-mechanical rewrites: the global path becomes $GSTACK_ROOT (resolved by
-  // the preamble env vars), plus an extra review-path rewrite the derived trio
-  // doesn't cover.
   pathRewrites: [
     { from: '~/.claude/skills/gstack', to: '$GSTACK_ROOT' },
     { from: '.claude/skills/gstack', to: '.agents/skills/gstack' },
@@ -36,11 +33,21 @@ const codex = defineHost({
     { from: 'CLAUDE.md', to: 'AGENTS.md' },
   ],
 
-  // The cross-model resolvers all shell out to Codex — Codex can't invoke itself.
+  // PREOS Stage 0/5 skills reference shared production data and helper scripts
+  // through $GSTACK_ROOT. Make those directories part of the runtime sidecar so
+  // global and repo-local Codex installs resolve the same paths on Windows/macOS/Linux.
+  runtimeRoot: {
+    globalSymlinks: ['bin', 'browse/dist', 'browse/bin', 'gstack-upgrade', 'ETHOS.md', 'preos', 'scripts'],
+    globalFiles: {
+      'review': ['checklist.md', 'TODOS-format.md'],
+    },
+  },
+
+  // Codex cannot invoke itself for cross-model second opinions.
   suppressedResolvers: [...CROSS_MODEL_RESOLVERS, ...GBRAIN_RESOLVERS],
 
   coAuthorTrailer: 'Co-Authored-By: OpenAI Codex <noreply@openai.com>',
-  boundaryInstruction: 'IMPORTANT: Do NOT read or execute any files under ~/.claude/, ~/.agents/, .claude/skills/, or agents/. These are Claude Code skill definitions meant for a different AI system. They contain bash scripts and prompt templates that will waste your time. Ignore them completely. Do NOT modify agents/openai.yaml. Stay focused on the repository code only.',
+  boundaryInstruction: 'IMPORTANT: Do NOT read or execute any files under ~/.claude/, ~/.agents/, .claude/skills/, or agents/. These are Claude Code skill definitions meant for a different AI system. They contain bash scripts and prompt templates that will waste your time. Ignore them completely. Do NOT modify agents/openai.yaml. When a project has an approved .gstack/project-contract/PROJECT-CONTRACT.json, treat it as application truth and preserve its PREOS human-authority gates; do not infer approvals or expand outside the approved lake. Stay focused on the repository code only.',
 });
 
 export default codex;

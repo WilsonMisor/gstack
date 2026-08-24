@@ -1,0 +1,10 @@
+{
+  "skill": "project-init",
+  "sections": [
+    {"id":"source-intake","file":"source-intake.md","title":"Safe source intake","trigger":"before reading or extracting the supplied application package"},
+    {"id":"authority-resolution","file":"authority-resolution.md","title":"Authority and conflict resolution","trigger":"after the source manifest exists"},
+    {"id":"project-contract","file":"project-contract.md","title":"Project Contract construction","trigger":"after source authority is resolved"},
+    {"id":"context-and-preos","file":"context-and-preos.md","title":"PREOS context and role model","trigger":"before asking for Project Contract approval"},
+    {"id":"completion","file":"completion.md","title":"Approval and completion","trigger":"before declaring Stage 0 complete"}
+  ]
+}
