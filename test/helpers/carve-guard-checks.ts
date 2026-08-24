@@ -15,13 +15,23 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { CARVE_GUARDS, type CarveGuard } from './carve-guards';
 
-/** Every dir under `root` that owns a sections/manifest.json. Injectable for tests. */
+/**
+ * PREOS Stage 0 and Stage 5 were born sectioned; they were never monolithic
+ * skills carved against the historical v1.64.1.0 parity baseline. Their section
+ * contract is guarded by test/production-engine/codex-generation.test.ts and the
+ * PREOS deterministic tests. Keep them out of the legacy carve registry rather
+ * than fabricating a historical carve baseline that never existed.
+ */
+export const NATIVE_SECTIONED_SKILLS = new Set(['project-init', 'production-implement']);
+
+/** Every legacy-carved dir under `root` that owns a sections/manifest.json. */
 export function discoverCarvedSkills(root: string): string[] {
   return fs
     .readdirSync(root, { withFileTypes: true })
     .filter((d) => d.isDirectory())
     .map((d) => d.name)
     .filter((name) => fs.existsSync(path.join(root, name, 'sections', 'manifest.json')))
+    .filter((name) => !NATIVE_SECTIONED_SKILLS.has(name))
     .sort();
 }
 
@@ -129,9 +139,9 @@ export function checkOrdering(root: string, guard: CarveGuard): string[] {
 }
 
 /**
- * Completeness (E1): the filesystem carved set must equal the registry set, both
- * directions, and every registry entry must be internally consistent. Pure:
- * takes `root`.
+ * Completeness (E1): the filesystem *legacy carved* set must equal the legacy
+ * CARVE_GUARDS set in both directions, and every registry entry must be
+ * internally consistent. Native-sectioned PREOS skills are checked separately.
  */
 export function checkCompleteness(root: string): string[] {
   const failures: string[] = [];
