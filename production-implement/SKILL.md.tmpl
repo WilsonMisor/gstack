@@ -28,6 +28,12 @@ allowed-tools:
 
 **IRON LAW:** Code may be changed only after the Project Contract and Stage-4 plan pass preflight. Working UI or passing unit tests alone never establishes completion.
 
+Stage 5 requires an **approved, current Project Contract** and an approved Stage-4 plan. Revalidate authoritative source hashes, blocking conflicts, pending human gates, branch safety, scope, all 75 control decisions, required tests, evidence, rollback and recovery before implementation proceeds.
+
+All 75 deterministic baseline controls must be classified for the implementation slice. Every applicable control must have a gate, a passing test and evidence. Escalate remains blocking until a human technical decision; Forbidden rejects the implementation path.
+
+After successful Stage-5 verification, hand off to `/review`. Stage 5 may emit `IMPLEMENTATION COMPLETE` or `BLOCKED`; it must never declare `PRODUCTION APPROVED` or bypass independent review, QA, ship, deployment or canary stages.
+
 Canonical external pipeline remains Stage 0 `/project-init`, 1 `/office-hours`, 2 `/plan-ceo-review`, 3 `/plan-eng-review`, 4 `/autoplan`, 5 `/production-implement`, 6 `/review`, 7 `/qa`, 8 `/ship`, 9 `/land-and-deploy`, 10 `/canary`. PREOS engines are internal intelligence, not extra mandatory stages.
 
 {{SECTION_INDEX:production-implement}}
