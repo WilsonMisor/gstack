@@ -13,13 +13,14 @@ Invoke them by name (e.g., `/office-hours`).
 
 | Skill | What it does |
 |-------|-------------|
+| `/project-init` | Stage 0 source intake, source-authority resolution, Project Contract construction, and explicit human approval before planning. |
 | `/office-hours` | Start here. Reframes your product idea before you write code. |
 | `/plan-ceo-review` | CEO-level review: find the 10-star product in the request. |
 | `/plan-eng-review` | Lock architecture, data flow, edge cases, and tests. |
 | `/plan-design-review` | Rate each design dimension 0-10, explain what a 10 looks like. |
 | `/plan-devex-review` | DX-mode review: TTHW, magical moments, friction points, persona traces. |
 | `/plan-tune` | Self-tune AskUserQuestion sensitivity per question. |
-| `/autoplan` | One command runs CEO → design → eng → DX review. |
+| `/autoplan` | One command runs CEO → design → eng → DX review and, for PREOS application work, hands the approved Stage-4 plan to `/production-implement`. |
 | `/design-consultation` | Build a complete design system from scratch. |
 | `/spec` | Turn vague intent into a precise, executable spec in five phases. Files a GitHub issue, optionally spawns a Claude Code agent in a fresh worktree, and lets `/ship` close the source issue on merge. |
 
@@ -27,6 +28,7 @@ Invoke them by name (e.g., `/office-hours`).
 
 | Skill | What it does |
 |-------|-------------|
+| `/production-implement` | Stage 5 production implementer. Requires an approved current Project Contract and approved plan, classifies all 75 controls, implements coherent units, tests and records evidence, then hands off to `/review`; never self-declares production approval. |
 | `/review` | Pre-landing PR review. Finds bugs that pass CI but break in prod. |
 | `/codex` | Second opinion via OpenAI Codex. Review, challenge, or consult modes. |
 | `/investigate` | Systematic root-cause debugging. No fixes without investigation. |
@@ -106,6 +108,14 @@ End-to-end walkthrough: [docs/howto-ios-testing-with-gstack.md](docs/howto-ios-t
 | `/unfreeze` | Remove directory edit restrictions. |
 | `/make-pdf` | Turn any markdown file into a publication-quality PDF. |
 | `/diagram` | English in, diagram out: mermaid source + editable .excalidraw + SVG/PNG, offline. |
+
+## PREOS canonical application pipeline
+
+For application work governed by PREOS, the external pipeline is:
+
+`/project-init` → `/office-hours` → `/plan-ceo-review` → `/plan-eng-review` → `/autoplan` → `/production-implement` → `/review` → `/qa` → `/ship` → `/land-and-deploy` → `/canary`.
+
+PREOS engines are cross-cutting intelligence, not additional mandatory top-level stages. The Project Contract is application-specific truth; skills are reusable procedure; evidence proves gate results. Conversation memory is not authoritative execution state.
 
 ## Build commands
 
