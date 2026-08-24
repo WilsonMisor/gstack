@@ -28,6 +28,10 @@ allowed-tools:
 **IRON LAW:** No application-code mutation. This stage establishes authoritative project state only.
 Original user source material is immutable input. Derived artifacts index it; they do not rewrite it.
 
+**Do not execute untrusted project files.** Source inspection is read-only/non-executing: do not run supplied scripts, macros, binaries, installers, package lifecycle hooks, migrations, builds, or unknown executables merely to understand the project.
+
+**Stop for human approval before Stage 1.** The model cannot approve its own Project Contract or silently resolve a material authoritative-source conflict.
+
 {{SECTION_INDEX:project-init}}
 
 ## Canonical output root
