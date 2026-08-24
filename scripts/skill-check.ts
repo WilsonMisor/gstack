@@ -10,12 +10,14 @@
 
 import { validateSkill } from '../test/helpers/skill-parser';
 import { discoverTemplates, discoverSkillFiles } from './discover-skills';
+import { getExternalHosts, getHostConfig, ALL_HOST_CONFIGS } from '../hosts/index';
 import * as fs from 'fs';
 import * as path from 'path';
 import { execSync } from 'child_process';
 
 const ROOT = path.resolve(import.meta.dir, '..');
 const ROOT_REALPATH = fs.realpathSync(ROOT);
+const CLAUDE_SKIPPED_SKILLS = new Set(getHostConfig('claude').generation.skipSkills || []);
 
 function isRepoRootSymlink(candidateDir: string): boolean {
   try {
@@ -68,8 +70,13 @@ const TEMPLATES = discoverTemplates(ROOT);
 for (const { tmpl, output } of TEMPLATES) {
   const tmplPath = path.join(ROOT, tmpl);
   const outPath = path.join(ROOT, output);
+  const skillDir = path.dirname(tmpl) === '.' ? '' : path.dirname(tmpl).split(/[\\/]/)[0];
   if (!fs.existsSync(tmplPath)) {
     console.log(`  \u26a0\ufe0f  ${output.padEnd(30)} — no template`);
+    continue;
+  }
+  if (skillDir && CLAUDE_SKIPPED_SKILLS.has(skillDir)) {
+    console.log(`  -  ${tmpl.padEnd(30)} — intentionally skipped for Claude Code host`);
     continue;
   }
   if (!fs.existsSync(outPath)) {
@@ -89,8 +96,6 @@ for (const file of SKILL_FILES) {
 }
 
 // ─── External Host Skills (config-driven) ───────────────────
-
-import { getExternalHosts } from '../hosts/index';
 
 for (const hostConfig of getExternalHosts()) {
   const hostDir = path.join(ROOT, hostConfig.hostSubdir, 'skills');
@@ -129,8 +134,6 @@ for (const hostConfig of getExternalHosts()) {
 }
 
 // ─── Freshness (config-driven) ──────────────────────────────
-
-import { ALL_HOST_CONFIGS } from '../hosts/index';
 
 for (const hostConfig of ALL_HOST_CONFIGS) {
   const hostFlag = hostConfig.name === 'claude' ? '' : ` --host ${hostConfig.name}`;
