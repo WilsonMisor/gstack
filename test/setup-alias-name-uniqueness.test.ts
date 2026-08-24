@@ -1,20 +1,3 @@
-/**
- * Alias name uniqueness (#2511 / #2201).
- *
- * setup installs two back-compat alias dirs — `_gstack-command` (root router)
- * and `connect-chrome` (→ open-gstack-browser). Both used to symlink the
- * canonical SKILL.md verbatim, so the alias carried the canonical frontmatter
- * `name:`. Claude Code keys skills on that name and requires global
- * uniqueness: the `connect-chrome` duplicate silently shadowed
- * /open-gstack-browser (readdir-order roulette), and the `_gstack-command`
- * duplicate could drop the ENTIRE personal-skills set.
- *
- * The fix is copy-then-rewrite: sed reads the SOURCE and writes a fresh copy
- * with `name:` set to the alias dir's own name. Eng review E2 pinned the
- * hazard this suite guards hardest: on Unix the old install path was a
- * SYMLINK to the repo source, so an in-place sed through it would have
- * corrupted the generated SKILL.md — the source files must stay byte-intact.
- */
 import { describe, test, expect, beforeAll, afterAll } from 'bun:test';
 import { spawnSync } from 'child_process';
 import * as fs from 'fs';
@@ -67,7 +50,10 @@ beforeAll(() => {
   if (result.status !== 0) {
     throw new Error(`alias install failed: ${result.stderr}\n${result.stdout}`);
   }
-}, 30_000);
+// Keep the Bun hook deadline longer than the child-process deadline. The old
+// 30s hook made the declared 60s spawn timeout unreachable on slower Windows
+// filesystems, producing a false hook-timeout before the real assertion ran.
+}, 65_000);
 
 afterAll(() => {
   fs.rmSync(installDir, { recursive: true, force: true });
