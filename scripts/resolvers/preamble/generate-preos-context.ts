@@ -17,5 +17,5 @@ const STAGE_GUIDANCE: Record<string, string> = {
 export function generatePreosContext(ctx: TemplateContext): string {
   const guidance = STAGE_GUIDANCE[ctx.skillName];
   if (!guidance) return '';
-  return `**PREOS:** ${guidance}\n\n\`.gstack/project-contract/PROJECT-CONTRACT.json\` present → read it + \`$GSTACK_ROOT/preos/references/stage-handoffs.md\`. Contract=app truth; skill keeps role. No contract→normal gstack unless PREOS requested. No invented approval; UNKNOWN≠GREEN.`;
+  return `**PREOS:** ${guidance}\n\n\`.gstack/project-contract/PROJECT-CONTRACT.json\` present: read it + \`preos/references/stage-handoffs.md\`; contract=app truth, skill=procedure. Else normal gstack unless PREOS requested. Never invent approval; UNKNOWN≠GREEN.`;
 }
