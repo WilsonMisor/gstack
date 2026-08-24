@@ -9,12 +9,7 @@
  * There is no shared loader. The preamble provides: update checks, session
  * tracking, user preferences, repo mode detection, model overlays, and
  * telemetry.
- *
- * Telemetry data flow:
- *   1. Always: local JSONL append to ~/.gstack/analytics/ (inline, inspectable)
- *   2. If _TEL != "off" AND binary exists: gstack-telemetry-log for remote reporting
  */
-
 
 import type { TemplateContext } from './types';
 import { generateModelOverlay } from './model-overlay';
@@ -23,10 +18,7 @@ import { generateQuestionTuning } from './question-tuning';
 // Core bootstrap
 import { generatePreambleBash } from './preamble/generate-preamble-bash';
 import { generateUpgradeCheck } from './preamble/generate-upgrade-check';
-import {
-  generateCompletionStatus,
-  generatePlanModeInfo,
-} from './preamble/generate-completion-status';
+import { generateCompletionStatus, generatePlanModeInfo } from './preamble/generate-completion-status';
 
 // One-time onboarding prompts
 import { generateLakeIntro } from './preamble/generate-lake-intro';
@@ -41,7 +33,7 @@ import { generateWritingStyleMigration } from './preamble/generate-writing-style
 // Host-specific instructions
 import { generateBrainHealthInstruction } from './preamble/generate-brain-health-instruction';
 
-// GBrain cross-machine sync (runs at skill start; end-side handled in completion-status)
+// GBrain cross-machine sync
 import { generateBrainSyncBlock } from './preamble/generate-brain-sync-block';
 
 // Behavioral / voice
@@ -57,24 +49,21 @@ import { generateEvidenceDirective } from './preamble/generate-evidence-directiv
 import { generateContinuousCheckpoint } from './preamble/generate-continuous-checkpoint';
 import { generateContextHealth } from './preamble/generate-context-health';
 
+// PREOS cross-cutting project-contract handoff for canonical stages.
+import { generatePreosContext } from './preamble/generate-preos-context';
+
 // Tier 3+ repo mode + search
 import { generateRepoModeSection } from './preamble/generate-repo-mode-section';
 import { generateSearchBeforeBuildingSection } from './preamble/generate-search-before-building';
 import { generateMakePdfSetup } from './make-pdf';
 
-// Standalone export used directly by the resolver registry
 export { generateTestFailureTriage } from './preamble/generate-test-failure-triage';
 
 // Preamble Composition (tier → sections)
-// ─────────────────────────────────────────────
-// T1: core + upgrade + lake + telemetry + voice(trimmed) + completion
+// T1: core + upgrade + lake + telemetry + PREOS handoff where applicable + voice(trimmed) + completion
 // T2: T1 + voice(full) + ask + completeness + context-recovery + confusion + checkpoint + context-health
 // T3: T2 + repo-mode + search
-// T4: (same as T3 — TEST_FAILURE_TRIAGE is a separate {{}} placeholder, not preamble)
-//
-// Which skill gets which tier lives in each template's frontmatter
-// (`preamble-tier: N`). Every template that resolves {{PREAMBLE}} must
-// declare it — there is no default.
+// T4: same as T3; TEST_FAILURE_TRIAGE is a separate placeholder.
 export function generatePreamble(ctx: TemplateContext): string {
   const tier = ctx.preambleTier;
   if (tier === undefined) {
@@ -89,11 +78,6 @@ export function generatePreamble(ctx: TemplateContext): string {
   const sections = [
     generatePreambleBash(ctx),
     ...(ctx.skillName === 'make-pdf' ? [generateMakePdfSetup(ctx)] : []),
-    // Plan-mode-skill semantics stays near the top: after bash (so _SESSION_ID /
-    // _BRANCH / _TEL env vars are live) and before all onboarding gates so
-    // models read the authoritative "AskUserQuestion satisfies plan mode's
-    // end-of-turn" rule before any other instruction. Renders for all skills
-    // (not interactive-gated); the text applies universally.
     generatePlanModeInfo(ctx),
     generateUpgradeCheck(ctx),
     generateWritingStyleMigration(ctx),
@@ -105,13 +89,10 @@ export function generatePreamble(ctx: TemplateContext): string {
     generateVendoringDeprecation(ctx),
     generateSpawnedSessionCheck(),
     generateBrainHealthInstruction(ctx),
-    // AskUserQuestion Format renders BEFORE the model overlay so the pacing rule
-    // is the ambient default; the overlay's behavioral nudges land as subordinate
-    // patches. Opus 4.7 reads top-to-bottom and absorbs the first pacing directive
-    // it hits; reversing this order regresses plan-review cadence (v1.6.4.0 bug).
     ...(tier >= 2 ? [generateAskUserFormat(ctx)] : []),
     generateBrainSyncBlock(ctx),
     generateModelOverlay(ctx),
+    generatePreosContext(ctx),
     generateVoiceDirective(tier),
     ...(tier >= 2 ? [
       generateContextRecovery(ctx),
