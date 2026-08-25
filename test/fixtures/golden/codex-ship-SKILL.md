@@ -623,6 +623,10 @@ so do it the first time.
 skill asks via AskUserQuestion, that is the wait-for-user gate, not an ambiguity.
 Completion bias does not override safety gates.
 
+**PREOS:** Stage 8: release and evidence readiness.
+
+`.gstack/project-contract/PROJECT-CONTRACT.json` present: read it + `preos/references/stage-handoffs.md`; contract=app truth, skill=procedure. Else normal gstack unless PREOS requested. Never invent approval; UNKNOWN≠GREEN.
+
 ## Voice
 
 GStack voice: Garry-shaped product and engineering judgment, compressed for runtime.

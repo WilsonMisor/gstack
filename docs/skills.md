@@ -4,6 +4,8 @@ Detailed guides for every gstack skill — philosophy, workflow, and examples.
 
 | Skill | Your specialist | What they do |
 |-------|----------------|--------------|
+| [`/project-init`](../project-init/SKILL.md) | **Project Initializer** | Stage 0 source intake, source-authority resolution, Project Contract construction, PREOS context initialization, and explicit human approval before planning begins. |
+| [`/production-implement`](../production-implement/SKILL.md) | **Production Implementer** | Stage 5 production implementation under the approved Project Contract and Stage-4 plan, including the immutable 75-control baseline, PREOS risks, Implementation Units, testing, evidence, recovery, and human authority gates. |
 | [`/office-hours`](#office-hours) | **YC Office Hours** | Start here. Six forcing questions that reframe your product before you write code. Pushes back on your framing, challenges premises, generates implementation alternatives. Design doc feeds into every downstream skill. |
 | [`/spec`](#spec) | **Spec Author** | Turn vague intent into a precise, executable spec in five phases. Backlog-ready output that downstream skills can pick up. Optional agent spawn at the end. |
 | [`/plan-ceo-review`](#plan-ceo-review) | **CEO / Founder** | Rethink the problem. Find the 10-star product hiding inside the request. Four modes: Expansion, Selective Expansion, Hold Scope, Reduction. |
