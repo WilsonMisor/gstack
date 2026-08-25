@@ -45,7 +45,11 @@ permissions:
 
 jobs:
   free-tests:
-    runs-on: ubicloud-standard-8
+    # Fork portability: the upstream workflow targets Ubicloud, which requires
+    # a separate third-party runner integration. Use GitHub's standard Linux
+    # runner here so this fork's manual verification can run without that
+    # external runner registration.
+    runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
