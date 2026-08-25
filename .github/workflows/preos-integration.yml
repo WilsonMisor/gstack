@@ -1,0 +1,22 @@
+name: Validate PREOS integration
+
+on:
+  push:
+    branches:
+      - "integration/preos-production-assurance"
+  pull_request:
+    branches:
+      - "main"
+
+permissions:
+  contents: read
+
+jobs:
+  validate-preos-integration:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate PREOS specialist routing contract
+        run: python3 scripts/validate-preos-integration.py
