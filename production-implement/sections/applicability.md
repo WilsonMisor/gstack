@@ -1,0 +1,27 @@
+<!-- AUTO-GENERATED from applicability.md.tmpl — do not edit directly -->
+<!-- Regenerate: bun run gen:skill-docs -->
+## 75-control and PREOS applicability
+
+The original 75 production controls are the immutable deterministic minimum. Generated PREOS risks augment them; they never replace, merge, renumber or weaken them.
+
+Run `bun "$GSTACK_ROOT/scripts/production-engine/validate-baseline-controls.ts"` first. The canonical baseline is split across `preos/baseline/controls-75.part-1.json` through `part-3.json`; together they contain exactly original rows 1-75 and are guarded by a frozen semantic digest.
+Create exactly 75 coverage records and classify each as one of:
+
+- `Applies`
+- `Conditional`
+- `Not applicable`
+- `Escalate`
+- `Forbidden`
+
+Blank is invalid. `Not applicable` needs a project-specific reason. `Conditional` needs the condition. `Escalate` is treated as applicable until a qualified human resolves it and must persist a human gate. `Forbidden` rejects the proposed approach.
+
+Validate with `classify-control-coverage.ts`.
+
+Preserve the seven original production gates: Architecture, Security, Data, Performance, Failure, Deployment, Operations.
+
+Then generate/load context-specific PREOS risks using `generate-risk-set.ts`; it reads all four `preos/catalogues/risk-features.part-*.json` seed files and adds bounded project-specific combinations. Use high-value combinations rather than a full Cartesian explosion. Every material risk starts `UNKNOWN` until evidence changes it. UNKNOWN never silently becomes GREEN.
+
+Select exactly one stack overlay:
+
+- **General/non-WordPress:** enforce PREOS and the 75 controls through the actual frontend/API/backend/database/storage/auth/authorization/queue/cache/CDN/hosting/CI/CD/observability/recovery stack. Never trust frontend authorization; use native row/tenant isolation controls where appropriate.
+- **WordPress classic/custom plugin:** presentation in classic theme, business logic in custom plugin/core integration; enforce nonces, capability checks, owner/tenant/role/status checks, scoped queries, prepared SQL, REST `permission_callback`, private-file authorization. Do not generalize WordPress-specific prohibitions to other stacks.

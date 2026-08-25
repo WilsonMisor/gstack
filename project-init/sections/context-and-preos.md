@@ -1,0 +1,22 @@
+<!-- AUTO-GENERATED from context-and-preos.md.tmpl — do not edit directly -->
+<!-- Regenerate: bun run gen:skill-docs -->
+## PREOS context, ownership, maturity and research
+
+Apply the eight PREOS engines as Stage-0 context, not as extra user-facing pipeline stages:
+
+1. Context Engine
+2. Risk Generation Engine
+3. Change Impact Engine
+4. Economics & Complexity Engine
+5. Evolution Engine
+6. Control & Evidence Engine
+7. Production Feedback & Learning Engine
+8. Human Authority & Governance Engine
+
+Determine Product Maturity Stage 0-5 and Threat Stage 0-4. Do not buy hyperscale complexity for an early product; record deferred complexity with a measurable activation trigger and migration path.
+
+Load `preos/references/virtual-team-role-registry.md`. Record available roles, explicit ROLE GAPS, and decision authorities for product, architecture, security, legal/compliance/privacy, finance, launch, destructive data actions and incidents. A missing human role is not permission for the AI to take that authority.
+
+Identify volatile questions requiring current external research: laws/regulation, vendor prices/quotas/API behavior, security advisories/CVEs, platform policies, licensing, tax/custody rules, regional availability. Mark these `RESEARCH_REQUIRED`; do not invent current facts.
+
+Build initial risk context through `scripts/production-engine/generate-risk-set.ts`, which reads the four `preos/catalogues/risk-features.part-*.json` files representing all 1,130 PREOS v1.0 domain/feature seeds plus the project's explicit features. Do not materialize a blind Cartesian product. Prioritize high-consequence single faults, high-coupling pairwise combinations, and three-way combinations only where consequence warrants them.

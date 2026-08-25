@@ -1,0 +1,23 @@
+<!-- AUTO-GENERATED from project-contract.md.tmpl — do not edit directly -->
+<!-- Regenerate: bun run gen:skill-docs -->
+## Build the Project Contract
+
+Extract stable requirement IDs while retaining original wording and source locations. The contract must cover at least:
+
+- product category, users/actors and organization types;
+- business/revenue model, money movement and critical business invariants;
+- public, administrative and internal workflows;
+- architecture, frontend/backend/mobile/CMS/data components, integrations and deployment target;
+- databases, files/object storage, queues/events, caches, search, networking and cloud/hosting where applicable;
+- authentication, authorization, tenant/workspace/organization boundaries and trust/verification requirements;
+- sensitive/regulated data, retention, deletion, residency and privacy constraints;
+- external providers, vendor/contractor responsibilities and internally accountable owners;
+- geographic scope, jurisdictions and current-external-research flags;
+- expected users, traffic, transactions, reads/writes, storage, file volume, bandwidth, notifications, AI tokens, support load and growth vectors;
+- availability, recovery, budget, team maturity, launch stage, production stage and failure impact;
+- explicit constraints, non-goals, forbidden approaches and project-specific standards;
+- domain-skill bindings (for example an independent web-development skill) without copying those skills into gstack.
+
+Write `PROJECT-CONTRACT.json` to match `preos/schemas/project-contract.schema.json` and a human-readable `PROJECT-CONTRACT.md`.
+
+Source hashes are load-bearing. If an authoritative hash changes, status becomes `STALE`; impacted requirements, risks, plans and evidence require revalidation/reapproval.

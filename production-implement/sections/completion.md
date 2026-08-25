@@ -1,0 +1,44 @@
+<!-- AUTO-GENERATED from completion.md.tmpl — do not edit directly -->
+<!-- Regenerate: bun run gen:skill-docs -->
+## Stage-5 completeness audit
+
+Before completion verify all of the following:
+
+- Project Contract is current and approved;
+- Stage-4 plan remains the approved lake;
+- all 75 controls have valid applicability records;
+- project-specific PREOS risks were generated/assessed at the required depth;
+- no unresolved source/plan/code conflict remains;
+- all approved IUs are VERIFIED or explicitly BLOCKED/SUPERSEDED;
+- required tests passed with current evidence;
+- evidence is fresh for the current code/configuration/environment;
+- control dependencies are satisfied;
+- critical RED/HUMAN REVIEW/UNKNOWN items are not hidden by aggregate scores;
+- risk acceptances are authorized, scoped and non-expired;
+- migration, rollback, recovery, reconciliation, monitoring and operational handoff exist where applicable;
+- all required human approvals are explicit records;
+- limitations/deferred complexity/adjacent work are documented.
+
+Write an Implementation Evidence Package containing at least:
+
+- project contract version/hash;
+- approved plan ID;
+- feature/ticket IDs;
+- technology/overlay decision;
+- applicable/conditional/not-applicable/escalated/forbidden control sets;
+- relevant PREOS risks;
+- Implementation Units;
+- requirement -> risk/control -> code -> test -> evidence traceability;
+- migrations;
+- security/performance/recovery/economic checks;
+- approvals and role gaps;
+- limitations/deferred items;
+- rollback plan;
+- Stage-5 status.
+
+Terminal status is exactly one of:
+
+- `IMPLEMENTATION COMPLETE — hand off to $review.`
+- `BLOCKED — <reason>`
+
+**Never emit `PRODUCTION APPROVED`.** Review, QA, ship, deployment and canary remain independent stages.

@@ -1,0 +1,15 @@
+<!-- AUTO-GENERATED from source-intake.md.tmpl — do not edit directly -->
+<!-- Regenerate: bun run gen:skill-docs -->
+## Safe source intake
+
+1. Resolve the project root. Determine greenfield vs brownfield and whether the input is a folder, repository, ZIP, or external documents.
+2. Run the canonical read-only inventory helper:
+   `bun "$GSTACK_ROOT/scripts/production-engine/safe-source-inventory.ts" <input>`.
+3. Record every source path/type/size/timestamp/SHA-256 in `source-manifest.json`.
+4. **Never execute** supplied scripts, macros, installers, binaries, migrations, build hooks, package lifecycle scripts, or unknown executables merely to inspect them.
+5. ZIPs with absolute paths, `..` traversal, or symlink entries are BLOCKED. Do not extract them until the package is corrected.
+6. Treat code and infrastructure as OBSERVED STATE until human/source authority says it is intended state.
+7. Detect duplicates, contradictory documents, stale/superseded copies, ambiguous "final" files, missing dependencies, and files whose format cannot be safely inspected.
+8. Preserve original files byte-for-byte. Put generated indexes only under `.gstack/project-contract/`.
+
+If a source cannot be safely inspected, record `UNKNOWN` and ask for a safe representation. UNKNOWN does not become approval.

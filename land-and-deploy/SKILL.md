@@ -610,6 +610,10 @@ the user course-correct cheaply instead of mid-flight.
 **Dedicated tools over Bash.** Prefer Read, Edit, Write, Glob, Grep over shell
 equivalents (cat, sed, find, grep). The dedicated tools are cheaper and clearer.
 
+**PREOS:** Stage 9: controlled deployment boundary.
+
+`.gstack/project-contract/PROJECT-CONTRACT.json` present: read it + `preos/references/stage-handoffs.md`; contract=app truth, skill=procedure. Else normal gstack unless PREOS requested. Never invent approval; UNKNOWN≠GREEN.
+
 ## Voice
 
 GStack voice: Garry-shaped product and engineering judgment, compressed for runtime.
