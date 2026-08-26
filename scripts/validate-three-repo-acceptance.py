@@ -13,7 +13,6 @@ import hashlib
 import json
 import os
 from pathlib import Path
-import shutil
 import subprocess
 import sys
 import tempfile
@@ -35,14 +34,7 @@ def read(path: Path) -> str:
 
 
 def run(cmd: list[str], *, cwd: Path, env: dict[str, str] | None = None, check: bool = True) -> subprocess.CompletedProcess[str]:
-    proc = subprocess.run(
-        cmd,
-        cwd=cwd,
-        env=env,
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-    )
+    proc = subprocess.run(cmd, cwd=cwd, env=env, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if check and proc.returncode != 0:
         sys.stderr.write(proc.stdout)
         sys.stderr.write(proc.stderr)
@@ -85,13 +77,8 @@ def assert_cross_repo_invariants(blueprint: Path, preos: Path, gstack: Path) -> 
             "Blueprint continuity does not reject conversation memory as authority")
 
     for token in [
-        "PREOS_STATE_ROOT",
-        "75",
-        "G0",
-        "G11",
-        "RECOVERY_CONFLICT",
-        "first unverified action",
-        "UNKNOWN never silently becomes GREEN",
+        "PREOS_STATE_ROOT", "75", "G0", "G11", "RECOVERY_CONFLICT",
+        "first unverified action", "UNKNOWN never silently becomes GREEN",
     ]:
         require(token in preos_skill, f"PREOS skill missing authority/recovery anchor: {token}")
     for token in ["SAFE_TO_RESUME", "BLOCKED", "RECOVERY_CONFLICT"]:
@@ -104,10 +91,8 @@ def assert_cross_repo_invariants(blueprint: Path, preos: Path, gstack: Path) -> 
             "WordPress overlay must map canonical FS-001 through FS-075 exactly once")
 
     for token in [
-        "PREOS_STATE_ROOT",
-        "accountable human production approval",
-        "PREOS RECOVERY REQUIRED",
-        "not an automatic PREOS GREEN result",
+        "PREOS_STATE_ROOT", "accountable human production approval",
+        "PREOS RECOVERY REQUIRED", "not an automatic PREOS GREEN result",
     ]:
         require(token in gstack_integration, f"gstack integration contract missing boundary: {token}")
     for token in ["canonical AI Task Packet", "$preos-production-plan", "Deployment ability is not deployment authority"]:
@@ -117,25 +102,25 @@ def assert_cross_repo_invariants(blueprint: Path, preos: Path, gstack: Path) -> 
 
     combined_gstack = "\n".join([gstack_integration, gstack_handoff, gstack_restore])
     for forbidden in [
-        "gstack authorizes production",
-        "gstack may accept production risk",
-        "PREOS state belongs under .gstack",
-        "gstack Project Contract",
+        "gstack authorizes production", "gstack may accept production risk",
+        "PREOS state belongs under .gstack", "gstack Project Contract",
         "gstack 75-control baseline",
     ]:
         require(forbidden not in combined_gstack, f"gstack contains prohibited authority statement: {forbidden}")
 
+    release_section = gstack_integration.partition("## Release relationship")[2]
+    require(bool(release_section), "gstack integration contract has no release relationship section")
     release_order = [
-        "Blueprint readiness",
-        "PREOS G0-G11",
+        "Blueprint launch readiness",
+        "PREOS G0-G11 assurance",
         "accountable human production approval",
         "gstack-ship",
         "gstack-land-and-deploy",
         "gstack-canary",
     ]
-    positions = [gstack_integration.find(token) for token in release_order]
-    require(all(position >= 0 for position in positions), "gstack integration contract is missing release-order anchors")
-    require(positions == sorted(positions), "release order differs from Blueprint -> PREOS -> human -> ship -> deploy -> canary")
+    positions = [release_section.find(token) for token in release_order]
+    require(all(position >= 0 for position in positions), "gstack release section is missing a required release-order anchor")
+    require(positions == sorted(positions), "release order differs from Blueprint, PREOS, human approval, ship, deploy, canary")
 
     print("PASS: cross-repository ownership and release invariants")
 
@@ -148,7 +133,6 @@ def disposable_non_wordpress_e2e(blueprint: Path, preos: Path, gstack: Path) -> 
         base = Path(td)
         app = base / "application"
         app.mkdir()
-
         requirements = app / "requirements.md"
         requirements.write_text(
             "REQ-1: The service must return a deterministic greeting and remain governed by human production approval.\n",
@@ -180,24 +164,18 @@ def disposable_non_wordpress_e2e(blueprint: Path, preos: Path, gstack: Path) -> 
             "observed_stack": {"language": "Python"},
             "declared_stack": {"language": "Python"},
             "approved_stack": {"language": "Python"},
-            "unknowns": [],
-            "assumptions": [],
-            "role_gaps": [],
-            "human_decisions_required": [],
+            "unknowns": [], "assumptions": [], "role_gaps": [], "human_decisions_required": [],
         }, indent=2) + "\n", encoding="utf-8")
 
         run([
-            sys.executable, str(source_intake), str(app),
-            "--project-root", str(app),
-            "--decisions", str(decisions),
-            "--intent", "three-repository disposable non-WordPress acceptance",
+            sys.executable, str(source_intake), str(app), "--project-root", str(app),
+            "--decisions", str(decisions), "--intent", "three-repository disposable non-WordPress acceptance",
         ], cwd=blueprint)
 
-        intake_root = app / ".ai-product-delivery" / "source-intake"
-        intake = json.loads(read(intake_root / "SOURCE-INTAKE.json"))
-        require(intake.get("project_mode") == "BROWNFIELD", "Blueprint intake did not classify disposable app as BROWNFIELD")
-        require(len(intake.get("source_requirements", [])) == 1, "Blueprint intake did not preserve exactly one governed source requirement")
-        require(not any(c.get("blocking") for c in intake.get("source_conflicts", [])), "Blueprint intake unexpectedly produced a blocking source conflict")
+        intake = json.loads(read(app / ".ai-product-delivery" / "source-intake" / "SOURCE-INTAKE.json"))
+        require(intake.get("project_mode") == "BROWNFIELD", "Blueprint intake did not preserve BROWNFIELD mode")
+        require(len(intake.get("source_requirements", [])) == 1, "Blueprint intake did not preserve the governed source requirement")
+        require(not any(c.get("blocking") for c in intake.get("source_conflicts", [])), "Blueprint intake unexpectedly produced a blocking conflict")
 
         contract_dir = app / ".ai-product-delivery" / "project-contract"
         packet_dir = app / ".ai-product-delivery" / "task-packets"
@@ -215,8 +193,7 @@ def disposable_non_wordpress_e2e(blueprint: Path, preos: Path, gstack: Path) -> 
             "# TP-001\n\nApproved bounded scope: edit app.py only. Required tests: deterministic greeting. Production authorization: human only.\n",
             encoding="utf-8",
         )
-        agents_template = read(blueprint / "templates" / "application-agents-continuity.md")
-        (app / "AGENTS.md").write_text(agents_template, encoding="utf-8")
+        (app / "AGENTS.md").write_text(read(blueprint / "templates" / "application-agents-continuity.md"), encoding="utf-8")
 
         git(app, "init")
         git(app, "config", "user.email", "three-repo-acceptance@example.invalid")
@@ -226,28 +203,22 @@ def disposable_non_wordpress_e2e(blueprint: Path, preos: Path, gstack: Path) -> 
 
         env = os.environ.copy()
         env["PREOS_STATE_ROOT"] = str(base / "preos-state")
-
         run([sys.executable, str(preos_scripts / "init-project-state.py"), "three-repo-nonwp", "--repo", str(app)], cwd=preos, env=env)
 
-        # Deterministic bounded implementation fixture. This exercises the exact
-        # filesystem boundary that an approved Codex task packet is allowed to
-        # mutate without pretending an authenticated model ran inside CI.
+        # Deterministic bounded implementation fixture. It exercises the same
+        # filesystem boundary as an approved Codex packet without claiming an
+        # authenticated external Codex model ran inside this secretless job.
         code.write_text("print('hello v2')\n", encoding="utf-8")
         run([
-            sys.executable, str(preos_scripts / "checkpoint-state.py"),
-            "three-repo-nonwp", "--repo", str(app), "--kind", "soft",
-            "--event", "SESSION_INTERRUPTED",
+            sys.executable, str(preos_scripts / "checkpoint-state.py"), "three-repo-nonwp",
+            "--repo", str(app), "--kind", "soft", "--event", "SESSION_INTERRUPTED",
             "--project-contract", str(contract), "--project-contract-version", "PC-1",
             "--task-packet", str(packet), "--task-packet-id", "TP-001",
             "--last-verified-action", "bounded app.py edit durably captured",
-            "--next-unverified-action", "deterministic greeting test",
-            "--pending-test", "nonwp:greeting",
+            "--next-unverified-action", "deterministic greeting test", "--pending-test", "nonwp:greeting",
         ], cwd=preos, env=env)
 
-        recovered = run([
-            sys.executable, str(preos_scripts / "recover-state.py"),
-            "three-repo-nonwp", "--repo", str(app),
-        ], cwd=preos, env=env)
+        recovered = run([sys.executable, str(preos_scripts / "recover-state.py"), "three-repo-nonwp", "--repo", str(app)], cwd=preos, env=env)
         recovery = json.loads(recovered.stdout)
         require(recovery.get("status") == "SAFE_TO_RESUME", "fresh-process PREOS recovery did not return SAFE_TO_RESUME")
         require(recovery.get("next_unverified_action") == "re-run uncertain test: nonwp:greeting",
@@ -255,13 +226,12 @@ def disposable_non_wordpress_e2e(blueprint: Path, preos: Path, gstack: Path) -> 
 
         result = run([sys.executable, str(code)], cwd=app)
         require(result.stdout.strip() == "hello v2", "disposable bounded implementation verification failed")
-
         git(app, "add", "app.py")
         git(app, "commit", "-m", "verified bounded implementation")
+
         hard = run([
-            sys.executable, str(preos_scripts / "checkpoint-state.py"),
-            "three-repo-nonwp", "--repo", str(app), "--kind", "hard",
-            "--event", "IMPLEMENTATION_COMPLETE",
+            sys.executable, str(preos_scripts / "checkpoint-state.py"), "three-repo-nonwp",
+            "--repo", str(app), "--kind", "hard", "--event", "IMPLEMENTATION_COMPLETE",
             "--project-contract", str(contract), "--project-contract-version", "PC-1",
             "--task-packet", str(packet), "--task-packet-id", "TP-001",
             "--last-verified-action", "bounded implementation and required test verified",
@@ -269,33 +239,23 @@ def disposable_non_wordpress_e2e(blueprint: Path, preos: Path, gstack: Path) -> 
         ], cwd=preos, env=env)
         require("HARD CHECKPOINT" in hard.stdout, "PREOS did not create the verified Git-bound hard checkpoint")
 
-        # gstack's actual specialist behavior is independently exercised by its
-        # own review, CSO, QA, benchmark, and eval suites. Here we prove that the
-        # cross-suite route is present and remains subordinate to PREOS/humans.
         gstack_contract = read(gstack / "PREOS-INTEGRATION.md")
         for route in ["gstack-review", "gstack-cso", "gstack-qa", "gstack-benchmark"]:
-            require(route in gstack_contract, f"disposable lifecycle missing specialist assurance route: {route}")
+            require(route in gstack_contract, f"disposable lifecycle missing specialist route: {route}")
 
         run([
-            sys.executable, str(preos_scripts / "record-approval.py"),
-            "three-repo-nonwp", "A-PROD", "--status", "PENDING",
-            "--scope", "production authorization",
-            "--authority", "Accountable Product Owner",
+            sys.executable, str(preos_scripts / "record-approval.py"), "three-repo-nonwp", "A-PROD",
+            "--status", "PENDING", "--scope", "production authorization", "--authority", "Accountable Product Owner",
         ], cwd=preos, env=env)
         run([
-            sys.executable, str(preos_scripts / "checkpoint-state.py"),
-            "three-repo-nonwp", "--repo", str(app), "--kind", "soft",
-            "--event", "APPROVAL_REQUIRED",
+            sys.executable, str(preos_scripts / "checkpoint-state.py"), "three-repo-nonwp",
+            "--repo", str(app), "--kind", "soft", "--event", "APPROVAL_REQUIRED",
             "--project-contract", str(contract), "--project-contract-version", "PC-1",
-            "--task-packet", str(packet), "--task-packet-id", "TP-001",
-            "--required-approval", "A-PROD",
+            "--task-packet", str(packet), "--task-packet-id", "TP-001", "--required-approval", "A-PROD",
             "--last-verified-action", "implementation assurance ready for production gate",
             "--next-unverified-action", "human production authorization",
         ], cwd=preos, env=env)
-        blocked = run([
-            sys.executable, str(preos_scripts / "recover-state.py"),
-            "three-repo-nonwp", "--repo", str(app),
-        ], cwd=preos, env=env, check=False)
+        blocked = run([sys.executable, str(preos_scripts / "recover-state.py"), "three-repo-nonwp", "--repo", str(app)], cwd=preos, env=env, check=False)
         require(blocked.returncode == 3, "pending human production approval did not block recovery")
         blocked_state = json.loads(blocked.stdout)
         require(blocked_state.get("status") == "BLOCKED", "pending human production approval was not preserved as BLOCKED")
@@ -311,11 +271,9 @@ def main() -> None:
     parser.add_argument("--preos", required=True, type=Path)
     parser.add_argument("--gstack", required=True, type=Path)
     args = parser.parse_args()
-
     blueprint = args.blueprint.resolve()
     preos = args.preos.resolve()
     gstack = args.gstack.resolve()
-
     assert_cross_repo_invariants(blueprint, preos, gstack)
     disposable_non_wordpress_e2e(blueprint, preos, gstack)
     print("PASS: three-repository derived acceptance harness complete")
