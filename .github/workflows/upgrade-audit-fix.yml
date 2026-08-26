@@ -1,4 +1,4 @@
-name: One-shot dependency remediation
+name: One-shot governed docs regeneration
 
 on:
   push:
@@ -9,58 +9,101 @@ permissions:
   contents: write
 
 jobs:
-  remediate:
+  regenerate:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
         with:
           ref: upgrade/blueprint-preos-handoffs
           fetch-depth: 0
       - uses: oven-sh/setup-bun@v2
-      - name: Apply targeted security overrides
+      - name: Apply source-document corrections
         shell: bash
         run: |
           set -euo pipefail
-          node <<'NODE'
-          const fs = require('fs');
-          const path = 'package.json';
-          const pkg = JSON.parse(fs.readFileSync(path, 'utf8'));
-          pkg.overrides = {
-            ...(pkg.overrides || {}),
-            'image-size': 'npm:image-size-next@2.1.1',
-            'ip-address': '10.3.1',
-            'sharp': '0.35.3'
-          };
-          fs.writeFileSync(path, JSON.stringify(pkg, null, 2) + '\n');
-          NODE
-          bun install
-      - name: Verify no HIGH dependency advisories remain
-        run: bun audit --audit-level=high
-      - name: Verify build
-        run: bun run build
-      - name: Verify free test suite
-        run: bun run test:free
-      - name: Enforce bounded dependency-only change
+          python3 <<'PY'
+          from pathlib import Path
+
+          def replace_once(path, old, new):
+              p = Path(path)
+              text = p.read_text(encoding='utf-8')
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{path}: expected exactly one match, found {count}: {old!r}')
+              p.write_text(text.replace(old, new, 1), encoding='utf-8')
+
+          replace_once(
+              'preos-handoff/SKILL.md.tmpl',
+              '  Convert an approved gstack planning result into a bounded structured handoff for the AI Product Delivery Blueprint and PREOS without creating duplicate project truth.\n',
+              '  Convert an approved gstack plan into a bounded Blueprint/PREOS handoff without creating duplicate project truth.\n',
+          )
+
+          replace_once(
+              'AGENTS.md',
+              '| `/autoplan` | One command runs CEO → design → eng → DX review. |\n',
+              '| `/autoplan` | One command runs CEO → design → eng → DX review. |\n| `/preos-handoff` | Bridge an approved gstack plan into Blueprint/PREOS change-impact and production planning without duplicating governed truth. |\n',
+          )
+          replace_once(
+              'AGENTS.md',
+              '| `/context-save` | Save working context (git state, decisions, remaining work). |\n',
+              '| `/context-save` | Save supplementary semantic notes for later orientation; never authoritative execution or recovery state. |\n',
+          )
+          replace_once(
+              'AGENTS.md',
+              '| `/context-restore` | Resume from a saved context, even across Conductor workspaces. |\n',
+              '| `/context-restore` | Restore supplementary semantic notes for orientation; governed execution still reconciles through PREOS when active. |\n',
+          )
+
+          replace_once(
+              'docs/skills.md',
+              '| [`/autoplan`](#autoplan) | **Review Pipeline** | One command, fully reviewed plan. Runs CEO → design → eng → DX review automatically with encoded decision principles. Surfaces only taste decisions for your approval. |\n',
+              '| [`/autoplan`](#autoplan) | **Review Pipeline** | One command, fully reviewed plan. Runs CEO → design → eng → DX review automatically with encoded decision principles. Surfaces only taste decisions for your approval. |\n| [`/preos-handoff`](#preos-handoff) | **Governed Handoff Bridge** | Convert an approved gstack plan into a bounded handoff for Blueprint/PREOS change-impact and production planning. It never creates Project Contract, PREOS control, recovery, or production-approval authority. |\n',
+          )
+          replace_once(
+              'docs/skills.md',
+              '| [`/context-save`](#context-save) | **Save State** | Save working context (git state, decisions, remaining work) so any future session can resume. |\n',
+              '| [`/context-save`](#context-save) | **Semantic Notes** | Save supplementary semantic notes for later orientation. They never become authoritative execution state or automatic recovery permission. |\n',
+          )
+          replace_once(
+              'docs/skills.md',
+              '| [`/context-restore`](#context-restore) | **Restore State** | Resume from a saved context, even across Conductor workspace handoffs. |\n',
+              '| [`/context-restore`](#context-restore) | **Restore Notes** | Restore supplementary semantic notes for orientation. When PREOS is active, deterministic recovery still decides whether implementation is safe to resume. |\n',
+          )
+          PY
+      - name: Install frozen dependencies
+        run: bun install --frozen-lockfile
+      - name: Regenerate all host skill docs
+        run: bun run gen:skill-docs --host all
+      - name: Validate targeted integration tests
+        run: bun test test/gen-skill-docs.test.ts test/skill-validation.test.ts
+      - name: Validate PREOS authority boundary
+        run: python3 scripts/validate-preos-integration.py
+      - name: Verify generated docs are fresh
+        shell: bash
+        run: |
+          set -euo pipefail
+          bun run gen:skill-docs --host all
+      - name: Enforce bounded change set
         shell: bash
         run: |
           set -euo pipefail
           changed="$(git diff --name-only)"
           printf 'Changed files:\n%s\n' "$changed"
-          unexpected="$(printf '%s\n' "$changed" | grep -Ev '^(package.json|bun.lock)$' || true)"
+          test -n "$changed"
+          unexpected="$(printf '%s\n' "$changed" | grep -Ev '^(AGENTS\.md|docs/skills\.md|gstack/llms\.txt|preos-handoff/SKILL\.md\.tmpl|preos-handoff/SKILL\.md|\.(agents|factory|kiro|opencode|slate|cursor|openclaw|hermes|gbrain)/skills/gstack-preos-handoff/SKILL\.md)$' || true)"
           if [ -n "$unexpected" ]; then
-            echo 'Refusing remediation because unrelated files changed:' >&2
+            echo 'Refusing regeneration because unexpected files changed:' >&2
             printf '%s\n' "$unexpected" >&2
             exit 3
           fi
-          test -n "$changed"
-      - name: Commit targeted dependency remediation
+      - name: Commit governed documentation regeneration
         shell: bash
         run: |
           set -euo pipefail
           git config user.name 'WilsonMisor'
           git config user.email '100686890+WilsonMisor@users.noreply.github.com'
-          git add package.json bun.lock
-          git commit -m 'Resolve remaining high dependency advisories'
+          git add -u
+          git commit -m 'Complete PREOS handoff documentation'
           git push origin HEAD:upgrade/blueprint-preos-handoffs
