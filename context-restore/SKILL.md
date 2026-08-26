@@ -936,6 +936,14 @@ If the current branch differs from the saved context's branch, note this:
 "This context was saved on branch `{branch}`. You are currently on
 `{current branch}`. You may want to switch branches before continuing."
 
+### Governed implementation resume gate
+
+A restored gstack context answers **what were we doing?** It never proves **what is verified and safe?**
+
+Before option A can resume implementation, inspect the current repository. If `.ai-product-delivery/` indicates Blueprint/PREOS governance and either (a) the restored context is in-progress with an approved/current task packet or (b) Git has implementation changes outside `.ai-product-delivery/`, treat the work as potentially interrupted production-relevant implementation.
+
+Return `PREOS RECOVERY REQUIRED`, route through `/preos-handoff` to PREOS deterministic recovery, and do not edit code until PREOS returns `SAFE_TO_RESUME`. `BLOCKED` preserves the pending prerequisite. `RECOVERY_CONFLICT` stops implementation. Resume from PREOS's first unverified action, not from the saved conversational topic. Git/PREOS/Project Contract truth wins over conflicting gstack notes.
+
 ### Step 3: Offer next steps
 
 After presenting, ask via AskUserQuestion:
@@ -944,7 +952,7 @@ After presenting, ask via AskUserQuestion:
 - B) Show the full saved file
 - C) Just needed the context, thanks
 
-If A, summarize the first remaining work item and suggest starting there.
+If A and the governed implementation resume gate triggered, route to `/preos-handoff` / PREOS recovery first and do not suggest code edits. Otherwise summarize the first remaining work item and suggest starting there.
 
 ---
 
@@ -967,5 +975,6 @@ state, then `/context-restore` will find it."
 - **"Most recent" means the filename `YYYYMMDD-HHMMSS` prefix**, not
   `ls -1t` (filesystem mtime). Filenames are stable across file-system
   operations; mtime is not.
+- **Restored semantic context is supplementary.** For PREOS-governed interrupted implementation, `SAFE_TO_RESUME` comes only from PREOS deterministic reconciliation.
 - **This is a gstack skill, not a Claude Code built-in.** When the user types
   `/context-restore`, invoke this skill via the Skill tool.

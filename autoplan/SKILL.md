@@ -1838,7 +1838,7 @@ AskUserQuestion options:
 - E) Reject (start over)
 
 **Option handling:**
-- A: mark APPROVED, write review logs, suggest /ship
+- A: mark APPROVED and write review logs. If the repository is governed by the AI Product Delivery Blueprint with PREOS active, route through `/preos-handoff` and `$preos-production-plan` before Codex implementation; do **not** route directly to `/ship`. If PREOS is inactive, preserve the normal standalone `/ship` suggestion.
 - B: ask which overrides, apply, re-present gate
 - C: answer freeform, re-present gate
 - D: make changes, re-run affected phases (scope→1B, design→2, test plan→3, arch→3). Max 3 cycles.
@@ -1891,7 +1891,14 @@ If Phase 3.5 ran (DX scope), also log:
 SOURCE = "codex+subagent", "codex-only", "subagent-only", or "unavailable".
 Replace N values with actual consensus counts from the tables.
 
-Suggest next step: `/ship` when ready to create the PR.
+## Governed implementation handoff
+
+After approval, inspect the target repository for `.ai-product-delivery/` and PREOS-active governed artifacts.
+
+- **PREOS active:** do not suggest `/ship` as the next implementation step. Invoke `/preos-handoff` (Codex-installed name: `gstack-preos-handoff`) to emit the structured plan identity, requirements, architecture/ADR/design bindings, scope boundaries, specialist findings, unresolved conflicts and human decisions. The required route is Blueprint/PREOS change impact + risk delta -> `$preos-production-plan` -> canonical Blueprint AI Task Packet -> Codex.
+- **PREOS inactive:** preserve standalone gstack behavior and suggest `/ship` when appropriate.
+- Planning approval, PR readiness and merge readiness are not production authorization. Blueprint readiness, PREOS G0-G11 and accountable human production approval still precede ship/deploy/canary.
+
 
 ---
 
