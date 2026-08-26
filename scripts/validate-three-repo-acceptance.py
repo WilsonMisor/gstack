@@ -174,7 +174,18 @@ def disposable_non_wordpress_e2e(blueprint: Path, preos: Path, gstack: Path) -> 
 
         intake = json.loads(read(app / ".ai-product-delivery" / "source-intake" / "SOURCE-INTAKE.json"))
         require(intake.get("project_mode") == "BROWNFIELD", "Blueprint intake did not preserve BROWNFIELD mode")
-        require(len(intake.get("source_requirements", [])) == 1, "Blueprint intake did not preserve the governed source requirement")
+        source_requirements = intake.get("source_requirements", [])
+        governed = [
+            item for item in source_requirements
+            if item.get("original_wording") == "The service must return a deterministic greeting and remain governed by human production approval."
+            and item.get("authority") == "HUMAN_APPROVED"
+            and item.get("extraction_method") == "GOVERNED_INPUT"
+            and item.get("requires_governed_review") is False
+        ]
+        require(len(governed) == 1, "Blueprint intake did not preserve the governed source requirement and its authority")
+        automatic = [item for item in source_requirements if item.get("extraction_method") == "DETERMINISTIC_TEXT_CANDIDATE"]
+        require(automatic and all(item.get("requires_governed_review") for item in automatic),
+                "Blueprint automatic candidates were not preserved as review-required evidence")
         require(not any(c.get("blocking") for c in intake.get("source_conflicts", [])), "Blueprint intake unexpectedly produced a blocking conflict")
 
         contract_dir = app / ".ai-product-delivery" / "project-contract"
