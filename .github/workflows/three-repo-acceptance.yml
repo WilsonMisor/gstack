@@ -85,6 +85,9 @@ jobs:
             --preos preos \
             --gstack gstack
 
+      # Secretless repository-controlled acceptance only: this fixture does not
+      # authenticate an external Codex model, does not authorize production,
+      # and must not deploy the disposable WordPress application.
       - name: Run disposable WordPress three repository E2E
         run: |
           python3 gstack/scripts/validate-three-repo-wordpress-e2e.py \
