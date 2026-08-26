@@ -79,3 +79,10 @@ jobs:
             --blueprint blueprint \
             --preos preos \
             --gstack gstack
+
+      - name: Run virtual team organizational acceptance audit
+        run: |
+          python3 gstack/scripts/validate-virtual-team-acceptance.py \
+            --blueprint blueprint \
+            --preos preos \
+            --gstack gstack
