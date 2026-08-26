@@ -26,11 +26,14 @@ jobs:
           from pathlib import Path
 
           lowercase = 'ghcr.io/wilsonmisor/gstack/ci'
+          repo_expr = '$' + '{{ github.repository }}'
+          image_expr = '$' + '{{ env.IMAGE }}'
+          dynamic = f'ghcr.io/{repo_expr}/ci'
 
           for name in ['.github/workflows/evals.yml', '.github/workflows/evals-periodic.yml']:
               path = Path(name)
               text = path.read_text(encoding='utf-8')
-              old = '  IMAGE: ghcr.io/${{ github.repository }}/ci\n'
+              old = f'  IMAGE: {dynamic}\n'
               if text.count(old) != 1:
                   raise SystemExit(f'{name}: expected exactly one dynamic IMAGE line, found {text.count(old)}')
               new = (
@@ -44,6 +47,8 @@ jobs:
           marker = '  workflow_dispatch:\n\njobs:\n'
           if text.count(marker) != 1:
               raise SystemExit('ci-image.yml: workflow_dispatch/jobs marker drifted')
+          if text.count(dynamic) != 5:
+              raise SystemExit(f'ci-image.yml: expected 5 dynamic image references, found {text.count(dynamic)}')
           text = text.replace(
               marker,
               '  workflow_dispatch:\n\nenv:\n'
@@ -51,10 +56,7 @@ jobs:
               f'  IMAGE: {lowercase}\n\njobs:\n',
               1,
           )
-          dynamic = 'ghcr.io/${{ github.repository }}/ci'
-          if text.count(dynamic) != 5:
-              raise SystemExit(f'ci-image.yml: expected 5 dynamic image references, found {text.count(dynamic)}')
-          text = text.replace(dynamic, '${{ env.IMAGE }}')
+          text = text.replace(dynamic, image_expr)
           path.write_text(text, encoding='utf-8')
           PY
       - name: Enforce three-file bounded change and lowercase invariant
@@ -65,13 +67,22 @@ jobs:
           changed="$(git diff --name-only | sort)"
           printf 'Changed files:\n%s\n' "$changed"
           test "$changed" = "$expected"
-          ! grep -R -F 'ghcr.io/${{ github.repository }}/ci' \
-            .github/workflows/ci-image.yml \
-            .github/workflows/evals.yml \
-            .github/workflows/evals-periodic.yml
-          grep -q 'IMAGE: ghcr.io/wilsonmisor/gstack/ci' .github/workflows/ci-image.yml
-          grep -q 'IMAGE: ghcr.io/wilsonmisor/gstack/ci' .github/workflows/evals.yml
-          grep -q 'IMAGE: ghcr.io/wilsonmisor/gstack/ci' .github/workflows/evals-periodic.yml
+          python3 <<'PY'
+          from pathlib import Path
+          repo_expr = '$' + '{{ github.repository }}'
+          forbidden = f'ghcr.io/{repo_expr}/ci'
+          expected = 'IMAGE: ghcr.io/wilsonmisor/gstack/ci'
+          for name in [
+              '.github/workflows/ci-image.yml',
+              '.github/workflows/evals.yml',
+              '.github/workflows/evals-periodic.yml',
+          ]:
+              text = Path(name).read_text(encoding='utf-8')
+              if forbidden in text:
+                  raise SystemExit(f'{name}: mixed-case-prone dynamic GHCR path remains')
+              if expected not in text:
+                  raise SystemExit(f'{name}: canonical lowercase IMAGE missing')
+          PY
       - name: Commit validated GHCR namespace fix
         shell: bash
         run: |
