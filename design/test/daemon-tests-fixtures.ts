@@ -61,7 +61,7 @@ export interface SpawnedDaemon {
  * when stdout emits `DAEMON_STARTED port=<N>`.
  */
 export async function spawnDaemonForTest(
-  opts: { stateFile?: string; idleMs?: number; checkMs?: number; env?: Record<string, string> } = {},
+  opts: { stateFile?: string; idleMs?: number; checkMs?: number; startupTimeoutMs?: number; env?: Record<string, string> } = {},
 ): Promise<SpawnedDaemon> {
   const stateFile = opts.stateFile ?? path.join(makeTmpDir("daemon-state"), "design.json");
   const env: Record<string, string> = {
@@ -87,11 +87,16 @@ export async function spawnDaemonForTest(
     },
   );
 
+  // Process startup is an external integration boundary. GitHub-hosted runners can
+  // legitimately take longer than 5s under concurrent shard load, so keep the
+  // startup budget configurable and bounded without relaxing any daemon assertions.
+  const startupTimeoutMs = opts.startupTimeoutMs ?? 15_000;
+
   const port = await new Promise<number>((resolve, reject) => {
     const onTimeout = setTimeout(() => {
       proc.kill("SIGKILL");
-      reject(new Error("Daemon failed to emit DAEMON_STARTED within 5s"));
-    }, 5000);
+      reject(new Error(`Daemon failed to emit DAEMON_STARTED within ${startupTimeoutMs}ms`));
+    }, startupTimeoutMs);
     proc.stdout!.on("data", (chunk: Buffer) => {
       const line = chunk.toString();
       const m = line.match(/DAEMON_STARTED port=(\d+)/);
