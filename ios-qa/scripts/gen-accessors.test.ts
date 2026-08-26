@@ -716,6 +716,10 @@ describe('render', () => {
     ], 'build', 'schema')).toThrow("snapshot key 'count' is declared by both FirstState and SecondState");
   });
 
+  // This is an external Swift compiler integration test, not a normal in-process unit test.
+  // On ubuntu-latest swiftc can legitimately take >30s under the concurrent free-suite load,
+  // while the suite's global per-test ceiling is intentionally 30s. Give only this compiler
+  // probe 60s; keep all assertions and the global timeout unchanged.
   test('typechecks beside an internal @Observable app state using a comment marker', () => {
     if (spawnSync('swiftc', ['--version'], { encoding: 'utf8' }).status !== 0) return;
 
@@ -779,7 +783,7 @@ ${render([{
     if (typecheck.status !== 0) {
       throw new Error(`generated accessor failed Swift type checking:\n${typecheck.stderr}`);
     }
-  });
+  }, 60_000);
 
   test('strict JSON typing and cross-model validate-before-apply restore run correctly', () => {
     if (process.platform !== 'darwin') return;
