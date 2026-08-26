@@ -1,0 +1,76 @@
+name: One-shot PREOS handoff generator patch
+
+on:
+  push:
+    branches:
+      - "upgrade/blueprint-preos-handoffs"
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-regenerate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: upgrade/blueprint-preos-handoffs
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install
+      - name: Patch governed autoplan and context-restore templates
+        shell: python
+        run: |
+          from pathlib import Path
+
+          def replace_once(path, old, new):
+              p = Path(path)
+              text = p.read_text(encoding="utf-8")
+              if text.count(old) != 1:
+                  raise SystemExit(f"expected exactly one replacement anchor in {path!r}, found {text.count(old)}")
+              p.write_text(text.replace(old, new), encoding="utf-8")
+
+          replace_once(
+              "autoplan/SKILL.md.tmpl",
+              "- A: mark APPROVED, write review logs, suggest /ship",
+              "- A: mark APPROVED and write review logs. If the repository is governed by the AI Product Delivery Blueprint with PREOS active, route through `/preos-handoff` and `$preos-production-plan` before Codex implementation; do **not** route directly to `/ship`. If PREOS is inactive, preserve the normal standalone `/ship` suggestion."
+          )
+          replace_once(
+              "autoplan/SKILL.md.tmpl",
+              "Suggest next step: `/ship` when ready to create the PR.",
+              """## Governed implementation handoff\n\nAfter approval, inspect the target repository for `.ai-product-delivery/` and PREOS-active governed artifacts.\n\n- **PREOS active:** do not suggest `/ship` as the next implementation step. Invoke `/preos-handoff` (Codex-installed name: `gstack-preos-handoff`) to emit the structured plan identity, requirements, architecture/ADR/design bindings, scope boundaries, specialist findings, unresolved conflicts and human decisions. The required route is Blueprint/PREOS change impact + risk delta -> `$preos-production-plan` -> canonical Blueprint AI Task Packet -> Codex.\n- **PREOS inactive:** preserve standalone gstack behavior and suggest `/ship` when appropriate.\n- Planning approval, PR readiness and merge readiness are not production authorization. Blueprint readiness, PREOS G0-G11 and accountable human production approval still precede ship/deploy/canary.\n"""
+          )
+
+          gate = """### Governed implementation resume gate\n\nA restored gstack context answers **what were we doing?** It never proves **what is verified and safe?**\n\nBefore option A can resume implementation, inspect the current repository. If `.ai-product-delivery/` indicates Blueprint/PREOS governance and either (a) the restored context is in-progress with an approved/current task packet or (b) Git has implementation changes outside `.ai-product-delivery/`, treat the work as potentially interrupted production-relevant implementation.\n\nReturn `PREOS RECOVERY REQUIRED`, route through `/preos-handoff` to PREOS deterministic recovery, and do not edit code until PREOS returns `SAFE_TO_RESUME`. `BLOCKED` preserves the pending prerequisite. `RECOVERY_CONFLICT` stops implementation. Resume from PREOS's first unverified action, not from the saved conversational topic. Git/PREOS/Project Contract truth wins over conflicting gstack notes.\n\n"""
+          replace_once(
+              "context-restore/SKILL.md.tmpl",
+              "### Step 3: Offer next steps\n",
+              gate + "### Step 3: Offer next steps\n"
+          )
+          replace_once(
+              "context-restore/SKILL.md.tmpl",
+              "If A, summarize the first remaining work item and suggest starting there.",
+              "If A and the governed implementation resume gate triggered, route to `/preos-handoff` / PREOS recovery first and do not suggest code edits. Otherwise summarize the first remaining work item and suggest starting there."
+          )
+          replace_once(
+              "context-restore/SKILL.md.tmpl",
+              "- **This is a gstack skill, not a Claude Code built-in.** When the user types",
+              "- **Restored semantic context is supplementary.** For PREOS-governed interrupted implementation, `SAFE_TO_RESUME` comes only from PREOS deterministic reconciliation.\n- **This is a gstack skill, not a Claude Code built-in.** When the user types"
+          )
+      - name: Regenerate tracked and host skill docs
+        run: bun run gen:skill-docs --host all
+      - name: Verify intended semantic changes
+        run: |
+          grep -q 'Governed implementation handoff' autoplan/SKILL.md
+          grep -q 'PREOS RECOVERY REQUIRED' context-restore/SKILL.md
+          grep -q 'gstack-preos-handoff' autoplan/SKILL.md
+      - name: Remove one-shot workflow and commit generated outputs
+        run: |
+          rm .github/workflows/upgrade-preos-handoff-selfpatch.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git diff --cached --stat
+          git commit -m 'Wire autoplan and context restore to PREOS handoff'
+          git push origin HEAD:upgrade/blueprint-preos-handoffs
