@@ -1,4 +1,4 @@
-name: One-shot governed docs regeneration
+name: One-shot dependency remediation validation
 
 on:
   push:
@@ -9,101 +9,78 @@ permissions:
   contents: write
 
 jobs:
-  regenerate:
+  validate-and-remediate:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v7
         with:
           ref: upgrade/blueprint-preos-handoffs
           fetch-depth: 0
       - uses: oven-sh/setup-bun@v2
-      - name: Apply source-document corrections
+        with:
+          bun-version: 1.3.13
+      - name: Configure canonical free-test git identity
+        run: |
+          git config --global user.email "free-tests-ci@gstack.test"
+          git config --global user.name "Free Tests CI"
+          git config --global init.defaultBranch main
+          git config --global --add safe.directory '*'
+      - name: Apply targeted security overrides
         shell: bash
         run: |
           set -euo pipefail
-          python3 <<'PY'
-          from pathlib import Path
-
-          def replace_once(path, old, new):
-              p = Path(path)
-              text = p.read_text(encoding='utf-8')
-              count = text.count(old)
-              if count != 1:
-                  raise SystemExit(f'{path}: expected exactly one match, found {count}: {old!r}')
-              p.write_text(text.replace(old, new, 1), encoding='utf-8')
-
-          replace_once(
-              'preos-handoff/SKILL.md.tmpl',
-              '  Convert an approved gstack planning result into a bounded structured handoff for the AI Product Delivery Blueprint and PREOS without creating duplicate project truth.\n',
-              '  Convert an approved gstack plan into a bounded Blueprint/PREOS handoff without creating duplicate project truth.\n',
-          )
-
-          replace_once(
-              'AGENTS.md',
-              '| `/autoplan` | One command runs CEO → design → eng → DX review. |\n',
-              '| `/autoplan` | One command runs CEO → design → eng → DX review. |\n| `/preos-handoff` | Bridge an approved gstack plan into Blueprint/PREOS change-impact and production planning without duplicating governed truth. |\n',
-          )
-          replace_once(
-              'AGENTS.md',
-              '| `/context-save` | Save working context (git state, decisions, remaining work). |\n',
-              '| `/context-save` | Save supplementary semantic notes for later orientation; never authoritative execution or recovery state. |\n',
-          )
-          replace_once(
-              'AGENTS.md',
-              '| `/context-restore` | Resume from a saved context, even across Conductor workspaces. |\n',
-              '| `/context-restore` | Restore supplementary semantic notes for orientation; governed execution still reconciles through PREOS when active. |\n',
-          )
-
-          replace_once(
-              'docs/skills.md',
-              '| [`/autoplan`](#autoplan) | **Review Pipeline** | One command, fully reviewed plan. Runs CEO → design → eng → DX review automatically with encoded decision principles. Surfaces only taste decisions for your approval. |\n',
-              '| [`/autoplan`](#autoplan) | **Review Pipeline** | One command, fully reviewed plan. Runs CEO → design → eng → DX review automatically with encoded decision principles. Surfaces only taste decisions for your approval. |\n| [`/preos-handoff`](#preos-handoff) | **Governed Handoff Bridge** | Convert an approved gstack plan into a bounded handoff for Blueprint/PREOS change-impact and production planning. It never creates Project Contract, PREOS control, recovery, or production-approval authority. |\n',
-          )
-          replace_once(
-              'docs/skills.md',
-              '| [`/context-save`](#context-save) | **Save State** | Save working context (git state, decisions, remaining work) so any future session can resume. |\n',
-              '| [`/context-save`](#context-save) | **Semantic Notes** | Save supplementary semantic notes for later orientation. They never become authoritative execution state or automatic recovery permission. |\n',
-          )
-          replace_once(
-              'docs/skills.md',
-              '| [`/context-restore`](#context-restore) | **Restore State** | Resume from a saved context, even across Conductor workspace handoffs. |\n',
-              '| [`/context-restore`](#context-restore) | **Restore Notes** | Restore supplementary semantic notes for orientation. When PREOS is active, deterministic recovery still decides whether implementation is safe to resume. |\n',
-          )
-          PY
-      - name: Install frozen dependencies
-        run: bun install --frozen-lockfile
-      - name: Regenerate all host skill docs
+          node <<'NODE'
+          const fs = require('fs');
+          const path = 'package.json';
+          const pkg = JSON.parse(fs.readFileSync(path, 'utf8'));
+          pkg.overrides = {
+            ...(pkg.overrides || {}),
+            'image-size': 'npm:image-size-next@2.1.1',
+            'ip-address': '10.3.1',
+            'sharp': '0.35.3'
+          };
+          fs.writeFileSync(path, JSON.stringify(pkg, null, 2) + '\n');
+          NODE
+          bun install
+      - name: Verify HIGH audit is clean
+        run: bun audit --audit-level=high
+      - name: Install Playwright Chromium exactly as Free Tests
+        run: npx playwright install --with-deps chromium
+      - name: Install Xvfb + X11 utilities exactly as Free Tests
+        run: sudo apt-get install -y --no-install-recommends xvfb x11-utils
+      - name: Generate host SKILL.md outputs
         run: bun run gen:skill-docs --host all
-      - name: Validate targeted integration tests
-        run: bun test test/gen-skill-docs.test.ts test/skill-validation.test.ts
-      - name: Validate PREOS authority boundary
-        run: python3 scripts/validate-preos-integration.py
-      - name: Verify generated docs are fresh
-        shell: bash
-        run: |
-          set -euo pipefail
-          bun run gen:skill-docs --host all
-      - name: Enforce bounded change set
+      - name: Vendor xterm assets
+        run: bun run vendor:xterm
+      - name: Build server-node bundle
+        run: bash browse/scripts/build-node-server.sh
+      - name: Verify complete build
+        run: bun run build
+      - name: Run canonical free suite
+        run: xvfb-run -a bun run test:free
+      - name: Recheck HIGH audit after tests
+        run: bun audit --audit-level=high
+      - name: Enforce dependency-only persisted change
         shell: bash
         run: |
           set -euo pipefail
           changed="$(git diff --name-only)"
-          printf 'Changed files:\n%s\n' "$changed"
+          printf 'Changed tracked files:\n%s\n' "$changed"
           test -n "$changed"
-          unexpected="$(printf '%s\n' "$changed" | grep -Ev '^(AGENTS\.md|docs/skills\.md|gstack/llms\.txt|preos-handoff/SKILL\.md\.tmpl|preos-handoff/SKILL\.md|\.(agents|factory|kiro|opencode|slate|cursor|openclaw|hermes|gbrain)/skills/gstack-preos-handoff/SKILL\.md)$' || true)"
+          unexpected="$(printf '%s\n' "$changed" | grep -Ev '^(package\.json|bun\.lock)$' || true)"
           if [ -n "$unexpected" ]; then
-            echo 'Refusing regeneration because unexpected files changed:' >&2
+            echo 'Refusing remediation because unrelated tracked files changed:' >&2
             printf '%s\n' "$unexpected" >&2
             exit 3
           fi
-      - name: Commit governed documentation regeneration
+      - name: Commit validated dependency remediation
         shell: bash
         run: |
           set -euo pipefail
           git config user.name 'WilsonMisor'
           git config user.email '100686890+WilsonMisor@users.noreply.github.com'
-          git add -u
-          git commit -m 'Complete PREOS handoff documentation'
+          git add package.json bun.lock
+          git commit -m 'Resolve remaining high dependency advisories'
           git push origin HEAD:upgrade/blueprint-preos-handoffs
