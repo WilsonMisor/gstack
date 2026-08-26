@@ -403,8 +403,7 @@ jobs:
             COST=$(echo "$COST + $C" | bc)
             STATUS_ICON="✅"
             [ "$F" -gt 0 ] && STATUS_ICON="❌"
-            SUITE_LINES="${SUITE_LINES}| ${TIER} | ${P}/${T} | ${STATUS_ICON} | \$${C} |\
-"
+            SUITE_LINES="${SUITE_LINES}| ${TIER} | ${P}/${T} | ${STATUS_ICON} | \$${C} |\n"
           done
 
           STATUS="✅ PASS"
@@ -428,8 +427,7 @@ jobs:
               F=$(jq -r '.failed // 0' "$f")
               [ "$F" -eq 0 ] && continue
               FAILS=$(jq -r '.tests[] | select(.passed == false) | "- ❌ \(.name): \(.exit_reason // "unknown")"' "$f" 2>/dev/null || echo "- ⚠️ $(basename "$f"): parse error")
-              FAILURES="${FAILURES}${FAILS}\
-"
+              FAILURES="${FAILURES}${FAILS}\n"
             done
             BODY="${BODY}
 
