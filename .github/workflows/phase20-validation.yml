@@ -1,0 +1,80 @@
+name: Phase 20 Derived Validation
+
+# DERIVED VALIDATION ONLY. This workflow lives only on validation/phase20-gstack.
+# It must never be merged into the corrective PR. The branch starts at the exact
+# corrective gstack candidate and adds only this dispatcher/static validation file.
+# Existing workflow job bodies are dispatched unchanged wherever workflow_dispatch
+# already exists; PR-only job bodies are reproduced verbatim below.
+on:
+  push:
+    branches: [validation/phase20-gstack]
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  pr-only-static-checks:
+    name: PR-only static checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Workflow Lint — exact actionlint engine
+        run: docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint:1.7.11@sha256:6f03470d0152251d7f07f7c4dc019dbe7024c72cd952f839544c7798843efa8f -color
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Dependency Review — frozen graph
+        run: bun install --frozen-lockfile
+
+      - name: Dependency Review — high severity audit
+        run: bun audit --audit-level=high
+
+      - name: Skill Docs Freshness — generate all hosts
+        run: bun run gen:skill-docs --host all
+
+      - name: Skill Docs Freshness — tracked outputs unchanged
+        run: |
+          git diff --exit-code || {
+            echo "Generated SKILL.md files are stale. Run: bun run gen:skill-docs --host all"
+            exit 1
+          }
+
+      - name: Skill Docs Freshness — no untracked generated files
+        run: |
+          STRAYS=$(git status --porcelain --untracked-files=all | grep '^??' || true)
+          if [ -n "$STRAYS" ]; then
+            echo "Generator produced untracked files that are neither committed nor gitignored:"
+            echo "$STRAYS"
+            exit 1
+          fi
+
+      - name: Validate PREOS specialist routing contract
+        run: python3 scripts/validate-preos-integration.py
+
+  dispatch-existing-gates:
+    name: Dispatch unchanged existing gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      VALIDATION_REF: validation/phase20-gstack
+    steps:
+      - name: Dispatch repository workflows at validation ref
+        run: |
+          set -euo pipefail
+          gh workflow run free-tests.yml --repo "$GITHUB_REPOSITORY" --ref "$VALIDATION_REF"
+          gh workflow run windows-free-tests.yml --repo "$GITHUB_REPOSITORY" --ref "$VALIDATION_REF"
+          gh workflow run windows-setup-e2e.yml --repo "$GITHUB_REPOSITORY" --ref "$VALIDATION_REF"
+          gh workflow run quality-gate.yml --repo "$GITHUB_REPOSITORY" --ref "$VALIDATION_REF"
+          gh workflow run make-pdf-gate.yml --repo "$GITHUB_REPOSITORY" --ref "$VALIDATION_REF"
+          gh workflow run evals.yml --repo "$GITHUB_REPOSITORY" --ref "$VALIDATION_REF"
+          gh workflow run three-repo-acceptance.yml --repo "$GITHUB_REPOSITORY" --ref "$VALIDATION_REF"
+          echo "Dispatched all current gate workflows that expose workflow_dispatch."
