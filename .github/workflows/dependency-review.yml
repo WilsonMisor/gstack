@@ -18,15 +18,12 @@ permissions:
 
 jobs:
   dependency-review:
-    runs-on: ubicloud-standard-8
+    runs-on: ubuntu-latest
     timeout-minutes: 10
-    permissions:
-      contents: read
-      pull-requests: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
-      - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
-        with:
-          fail-on-severity: high
-          fail-on-scopes: runtime, development
-          comment-summary-in-pr: on-failure
+      - uses: oven-sh/setup-bun@v2
+      - name: Verify frozen dependency graph
+        run: bun install --frozen-lockfile
+      - name: Audit runtime and development dependencies
+        run: bun audit --audit-level=high

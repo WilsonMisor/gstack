@@ -5,6 +5,7 @@ on:
     branches:
       - "main"
       - "integration/preos-production-assurance"
+      - "upgrade/blueprint-preos-handoffs"
   pull_request:
     branches:
       - "main"

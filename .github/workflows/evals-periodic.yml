@@ -9,13 +9,14 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  IMAGE: ghcr.io/${{ github.repository }}/ci
+  # OCI/GHCR repository names must be lowercase; github.repository preserves display casing.
+  IMAGE: ghcr.io/wilsonmisor/gstack/ci
   EVALS_TIER: periodic
   EVALS_ALL: 1  # Ignore diff — run all periodic tests
 
 jobs:
   build-image:
-    runs-on: ubicloud-standard-8
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
@@ -66,7 +67,7 @@ jobs:
             ${{ env.IMAGE }}:latest
 
   evals:
-    runs-on: ubicloud-standard-8
+    runs-on: ubuntu-latest
     needs: build-image
     container:
       image: ${{ needs.build-image.outputs.image-tag }}

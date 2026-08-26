@@ -1,0 +1,88 @@
+name: Three Repository Upgrade Acceptance
+
+on:
+  push:
+    branches:
+      - "upgrade/blueprint-preos-handoffs"
+  pull_request:
+    branches:
+      - "main"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: three-repo-acceptance-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
+env:
+  BLUEPRINT_CANDIDATE_SHA: 8be357920832cf52c8aa3d96a173398658f8c8bf
+  PREOS_CANDIDATE_SHA: b76b97309d022287b9deea4930568d8eefa31baf
+
+jobs:
+  acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out gstack candidate
+        uses: actions/checkout@v7
+        with:
+          path: gstack
+          fetch-depth: 0
+
+      - name: Check out exact Blueprint candidate
+        uses: actions/checkout@v7
+        with:
+          repository: WilsonMisor/wed_dev_skill
+          ref: ${{ env.BLUEPRINT_CANDIDATE_SHA }}
+          path: blueprint
+          fetch-depth: 0
+
+      - name: Check out exact PREOS candidate
+        uses: actions/checkout@v7
+        with:
+          repository: WilsonMisor/PREOS
+          ref: ${{ env.PREOS_CANDIDATE_SHA }}
+          path: preos
+          fetch-depth: 0
+
+      - name: Verify exact candidate identities
+        run: |
+          test "$(git -C blueprint rev-parse HEAD)" = "$BLUEPRINT_CANDIDATE_SHA"
+          test "$(git -C preos rev-parse HEAD)" = "$PREOS_CANDIDATE_SHA"
+          if [ "${{ github.event_name }}" = "push" ]; then
+            test "$(git -C gstack rev-parse HEAD)" = "${{ github.sha }}"
+          else
+            test "$(git -C gstack rev-parse HEAD)" = "${{ github.sha }}"
+          fi
+
+      - name: Validate Blueprint candidate
+        working-directory: blueprint
+        run: |
+          python3 scripts/validate_blueprint.py
+          python3 -m unittest discover -s tests -p 'test_*.py'
+
+      - name: Validate PREOS candidate including WordPress and recovery E2E
+        working-directory: preos
+        run: |
+          python3 scripts/validate-preos.py
+          python3 -m unittest discover -s tests -p 'test_*.py'
+
+      - name: Validate gstack governed integration contract
+        working-directory: gstack
+        run: python3 scripts/validate-preos-integration.py
+
+      - name: Run cross repository invariants and disposable non WordPress E2E
+        run: |
+          python3 gstack/scripts/validate-three-repo-acceptance.py \
+            --blueprint blueprint \
+            --preos preos \
+            --gstack gstack
+
+      - name: Run virtual team organizational acceptance audit
+        run: |
+          python3 gstack/scripts/validate-virtual-team-acceptance.py \
+            --blueprint blueprint \
+            --preos preos \
+            --gstack gstack

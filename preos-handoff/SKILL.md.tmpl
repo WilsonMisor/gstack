@@ -1,0 +1,149 @@
+---
+name: preos-handoff
+version: 1.1.0
+description: |
+  Convert an approved gstack plan into a bounded Blueprint/PREOS handoff without creating duplicate project truth.
+  Use after /autoplan or specialist planning when PREOS is active, and whenever a restored gstack context involves interrupted production implementation that must be reconciled before coding resumes.
+  This bridge never creates a Project Contract, copies PREOS controls, authorizes production, or treats gstack context as execution truth. (gstack)
+triggers:
+  - hand approved plan to preos
+  - preos handoff
+  - continue governed implementation
+  - resume governed implementation
+allowed-tools:
+  - Bash
+  - Read
+  - Glob
+  - Grep
+---
+
+# /preos-handoff — Blueprint/PREOS Handoff Bridge
+
+Use this only in the integrated AI Product Delivery Blueprint + PREOS + gstack + Codex system. It is a specialist bridge, not a new governance or implementation authority.
+
+## Hard boundaries
+
+1. The Blueprint owns lifecycle, approved requirements/architecture and the canonical AI Task Packet.
+2. PREOS owns the Project Contract, canonical production risk/control/evidence state, deterministic recovery and G0-G11.
+3. gstack owns specialist planning/review/QA/release expertise and specialist evidence.
+4. Codex implements approved bounded AI Task Packets.
+5. Accountable humans own consequential risk acceptance and production authorization.
+6. Do not create `.gstack/project-contract/`, copy the PREOS 75-control baseline, create PREOS runtime state under `GSTACK_STATE_ROOT`, invent a competing task object, or turn a planning result into production approval.
+
+## Detect governed state
+
+Inspect the application repository for `.ai-product-delivery/`, a current Project Contract, active PREOS state, and the approved gstack plan. If PREOS is not active, say `PREOS HANDOFF NOT APPLICABLE` and return to the normal standalone gstack workflow without pretending this bridge is required.
+
+## Interrupted implementation gate
+
+If the request is to resume/continue work and the saved gstack context shows that production-relevant Codex implementation had already started or may have been interrupted:
+
+1. Return `PREOS RECOVERY REQUIRED`.
+2. Identify the project/task/plan references available from the context.
+3. Route to the installed `$preos` recovery intent (for example: “recover this interrupted production implementation and determine whether it is SAFE_TO_RESUME, BLOCKED, or RECOVERY_CONFLICT”).
+4. Do **not** recommend editing code until PREOS returns `SAFE_TO_RESUME`.
+5. `BLOCKED` preserves the persisted prerequisite or human decision; `RECOVERY_CONFLICT` stops implementation.
+6. Resume from PREOS's first unverified action, not from the last conversational topic.
+
+`gstack-context-restore` answers “what were we doing?”; PREOS recovery answers “what is actually verified and safe?”. Conversation memory and gstack semantic notes are supplementary, never authoritative execution state.
+
+## Approved-plan handoff
+
+For an approved gstack plan/autoplan result, read only the governing artifacts needed to produce this structure. Preserve existing identifiers; never synthesize IDs just to make the handoff look complete.
+
+```text
+PREOS HANDOFF READY
+
+approved_plan_id: <stable plan identifier or path+hash>
+plan_artifact: <path>
+project_contract: <identifier/version/hash if already available>
+requirement_ids: <approved requirement IDs>
+architecture_ids: <architecture baseline IDs>
+adr_ids: <ADR identifiers>
+design_ids: <design baseline IDs when applicable>
+risk_ids: <PREOS risk IDs already in scope, otherwise UNKNOWN>
+control_ids: <PREOS control IDs already in scope, otherwise UNKNOWN>
+gate: <applicable Blueprint/PREOS gate or UNKNOWN>
+task_packet: <current AI Task Packet identifier/hash if one already exists; do not create a second task object>
+architecture_binding: <relevant architecture/ADR version or hash>
+threat_context: <bounded security/threat context>
+known_exceptions: <approved exceptions only>
+known_assumptions: <bounded list>
+open_questions: <unresolved questions>
+security_considerations: <relevant specialist findings>
+specialist_findings: <finding IDs / evidence references>
+scope_boundaries: <approved scope and explicit non-scope>
+unresolved_conflicts: <source/plan/architecture conflicts>
+human_decisions: <pending consequential decisions>
+mutation_permission: <review-only or approved implementation scope>
+required_evidence: <required evidence outputs/freshness binding>
+recommended_next_route: Blueprint/PREOS change-impact and risk delta -> $preos-production-plan -> canonical AI Task Packet -> Codex
+```
+
+If a required governing item is absent, write `UNKNOWN`, name the missing artifact, and return `PREOS HANDOFF BLOCKED` when that absence prevents safe production planning. Do not convert a gstack finding into PREOS GREEN or silently waive a missing gate.
+
+## Specialist request contract
+
+When the handoff routes subsequent PREOS evidence needs back to a gstack specialist, pass only bounded necessary context:
+
+```text
+Project Contract version/hash
+requirement_ids
+risk_ids
+control_ids
+gate
+task_packet
+architecture_binding
+threat_context
+known_exceptions
+mutation_permission
+required_evidence
+```
+
+Do not ask the specialist to rediscover the whole project when approved governing artifacts already exist.
+
+## Specialist output contract
+
+Specialist results sent back to Blueprint/PREOS should be structured as applicable:
+
+```text
+finding_ids
+requirement_ids
+risk_ids
+control_ids
+severity
+evidence
+reproduction_or_test_steps
+changed_files_if_authorized
+remaining_uncertainty
+remediation
+acceptance_result
+```
+
+A specialist result is evidence and engineering judgment. It is not an automatic PREOS GREEN, Blueprint gate pass, risk acceptance, or production authorization.
+
+## Release separation
+
+An approved planning result is **not** release readiness. For PREOS-active projects, do not route directly from planning to `/ship`. Required production implementation, independent `review` / `cso` / `qa` / `benchmark` evidence as triggered, PREOS G0-G11 and accountable human production approval occur before gstack ship/deploy/canary.
+
+Canonical release sequence:
+
+```text
+Blueprint readiness
+-> PREOS G0-G11
+-> accountable human production approval
+-> gstack-ship
+-> gstack-land-and-deploy when selected
+-> gstack-canary
+```
+
+Deployment ability is not deployment authority.
+
+## Completion
+
+Return exactly one primary status:
+
+- `PREOS HANDOFF READY` — approved planning output is bounded and ready for Blueprint/PREOS change impact and production planning;
+- `PREOS RECOVERY REQUIRED` — interrupted implementation must be reconciled by PREOS before code changes;
+- `PREOS HANDOFF BLOCKED` — missing/conflicting governed input or human decision prevents a safe handoff;
+- `PREOS HANDOFF NOT APPLICABLE` — PREOS is inactive and normal standalone gstack routing applies.

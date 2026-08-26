@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # gstack-wtree — print a working-tree CONTENT fingerprint (a git tree hash).
 #
-# Builds a temp index, stages the full working tree into it (`git add -A`, so
-# .gitignore'd scratch stays out and UNTRACKED source is included), and prints
-# `git write-tree` of that index. Properties that make this the right
-# staleness fingerprint, vs `git rev-parse HEAD^{tree}`:
+# Builds a temporary index from HEAD, stages the full working tree into it
+# (`git add -A`, so .gitignore'd scratch stays out and UNTRACKED source is
+# included), and prints `git write-tree` of that index. Properties that make
+# this the right staleness fingerprint, vs `git rev-parse HEAD^{tree}`:
 #
 #   - Committing identical content does NOT change the fingerprint, so a
 #     record made on a dirty tree stays valid after the exact same content is
@@ -13,13 +13,15 @@
 #     can't stay FRESH after a new file appears.
 #   - Rebase/amend/squash that preserve content do not change it.
 #
-# Performance: the temp index is seeded by COPYING the real index (git writes
-# it atomically via rename, so the copy is a consistent snapshot). That
-# preserves the stat cache, so `git add -A` only re-hashes files whose stat
-# changed — measured 40x faster than a `read-tree HEAD` seed, which zeroes
-# stat data and forces a full re-hash of every tracked file. Both seeds
-# produce the identical write-tree hash. Fallback: `read-tree HEAD` when the
-# index copy is unavailable (fresh repo, exotic index).
+# CORRECTNESS INVARIANT: seed the temporary index with `read-tree HEAD`, not a
+# copy of the real index. Copying the real index also copies Git's stat cache;
+# on filesystems with coarse/racy timestamps a rapid same-size rewrite can be
+# treated as stat-identical by `git add -A`, leaving the old blob in the
+# temporary index and falsely certifying changed content as FRESH. `read-tree`
+# deliberately drops that working-tree stat cache, forcing tracked content to
+# be checked against the filesystem before `write-tree`. Evidence freshness is
+# a safety boundary, so deterministic content binding takes precedence over
+# the old stat-cache speed optimization.
 #
 # The real repo index is never touched. Staged blobs land in the object store
 # as unreachable objects and get gc'd like stash churn (note: this means the
@@ -29,22 +31,13 @@
 set -euo pipefail
 
 TOP=$(git rev-parse --show-toplevel 2>/dev/null) || exit 1
-# Resolve the REAL index path BEFORE exporting GIT_INDEX_FILE — with the env
-# var set, `git rev-parse --git-path index` returns the temp index itself and
-# the stat-cache seed silently self-copies into a dead fast path.
-REAL_INDEX=$(git -C "$TOP" rev-parse --git-path index 2>/dev/null || true)
 TMPIDX=$(mktemp "${TMPDIR:-/tmp}/gstack-wtree-XXXXXX")
 trap 'rm -f "$TMPIDX"' EXIT
+# `git read-tree` expects to create a valid index. mktemp reserves a unique
+# pathname for us; remove the empty placeholder before handing it to Git.
+rm -f "$TMPIDX"
 export GIT_INDEX_FILE="$TMPIDX"
-# Resolve relative --git-path output against the repo root.
-case "$REAL_INDEX" in
-  ""|/*) ;;
-  *) REAL_INDEX="$TOP/$REAL_INDEX" ;;
-esac
-if [ -n "$REAL_INDEX" ] && [ -f "$REAL_INDEX" ] && cp "$REAL_INDEX" "$TMPIDX" 2>/dev/null; then
-  : # stat-cache-preserving seed
-else
-  git -C "$TOP" read-tree HEAD 2>/dev/null || exit 1
-fi
+
+git -C "$TOP" read-tree HEAD 2>/dev/null || exit 1
 git -C "$TOP" add -A 2>/dev/null || exit 1
 git -C "$TOP" write-tree 2>/dev/null

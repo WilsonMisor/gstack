@@ -20,6 +20,7 @@ Invoke them by name (e.g., `/office-hours`).
 | `/plan-devex-review` | DX-mode review: TTHW, magical moments, friction points, persona traces. |
 | `/plan-tune` | Self-tune AskUserQuestion sensitivity per question. |
 | `/autoplan` | One command runs CEO → design → eng → DX review. |
+| `/preos-handoff` | Bridge an approved gstack plan into Blueprint/PREOS change-impact and production planning without duplicating governed truth. |
 | `/design-consultation` | Build a complete design system from scratch. |
 | `/spec` | Turn vague intent into a precise, executable spec in five phases. Files a GitHub issue, optionally spawns a Claude Code agent in a fresh worktree, and lets `/ship` close the source issue on merge. |
 
@@ -56,8 +57,8 @@ Invoke them by name (e.g., `/office-hours`).
 
 | Skill | What it does |
 |-------|-------------|
-| `/context-save` | Save working context (git state, decisions, remaining work). |
-| `/context-restore` | Resume from a saved context, even across Conductor workspaces. |
+| `/context-save` | Save supplementary semantic notes for later orientation; never authoritative execution or recovery state. |
+| `/context-restore` | Restore supplementary semantic notes for orientation; governed execution still reconciles through PREOS when active. |
 | `/learn` | Manage what gstack learned across sessions. |
 | `/retro` | Weekly retro with per-person breakdowns and shipping streaks. |
 | `/health` | Code quality dashboard (type checker, linter, tests, dead code). |

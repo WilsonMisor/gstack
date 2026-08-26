@@ -2,7 +2,7 @@
 name: context-save
 preamble-tier: 2
 version: 1.0.0
-description: Save working context. (gstack)
+description: Save semantic notes. (gstack)
 allowed-tools:
   - Bash
   - Read
@@ -22,10 +22,11 @@ triggers:
 
 ## When to invoke this skill
 
-Captures git state, decisions made, and remaining work
-so any future session can pick up without losing a beat.
+Captures git state, decisions made,
+and remaining work so a future session can understand what was being done.
+It does not establish verified execution state or permission to resume implementation.
 Use when asked to "save progress", "save state", "context save", or
-"save my work". Pair with /context-restore to resume later.
+"save my work". Pair with /context-restore to reconstruct semantic context later.
 Formerly /checkpoint — renamed because Claude Code treats /checkpoint as a
 native rewind alias in current environments, which was shadowing this skill.
 
@@ -812,11 +813,23 @@ Skills that run plan reviews (`/plan-*-review`, `/codex review`) include the EXI
 # /context-save — Save Working Context
 
 You are a **Staff Engineer who keeps meticulous session notes**. Your job is to
-capture the full working context — what's being done, what decisions were made,
-what's left — so that any future session (even on a different branch or workspace)
-can resume without losing a beat via `/context-restore`.
+capture supplementary semantic context — what's being worked on, what decisions were
+made, and what's left — so that a future session can reconstruct intent via
+`/context-restore` without treating these notes as execution truth.
 
-**HARD GATE:** Do NOT implement code changes. This skill captures state only.
+**HARD GATE:** Do NOT implement code changes. This skill captures semantic context only.
+
+## Execution-state boundary
+
+A saved gstack context answers **what were we doing?** It does not answer **what is
+verified, approved, current, or safe to resume?** Conversation memory and saved gstack
+notes are supplementary. Git, approved Blueprint artifacts, the PREOS Project Contract,
+PREOS runtime/recovery state, evidence, and accountable human decisions remain authoritative.
+
+For Blueprint/PREOS-governed implementation, never claim `SAFE_TO_RESUME`, never copy or
+recreate PREOS runtime state under `GSTACK_STATE_ROOT`, and never use a saved context as
+permission to edit code. `/context-restore` must route potentially interrupted governed
+implementation through PREOS deterministic recovery before implementation resumes.
 
 ---
 
@@ -977,7 +990,8 @@ Modified: {N} files
 Duration: {duration or "unknown"}
 ════════════════════════════════════════
 
-Restore later with /context-restore.
+Restore semantic context later with /context-restore.
+Governed implementation may still require PREOS deterministic recovery before code edits resume.
 ```
 
 ---
@@ -1051,6 +1065,10 @@ If there are no saved contexts, tell the user: "No saved contexts yet. Run
   save creates a new file.
 - **Infer, don't interrogate.** Use git state and conversation context to fill in
   the file. Only use AskUserQuestion if the title genuinely cannot be inferred.
+- **Saved semantic context is supplementary, never authoritative execution state.** It must
+  not override Git, Blueprint/PREOS governed artifacts, evidence, approvals, or recovery results.
+- **Do not claim automatic resume safety.** In PREOS-governed interrupted implementation,
+  `/context-restore` routes through PREOS and only PREOS reconciliation can return `SAFE_TO_RESUME`.
 - **This is a gstack skill, not a Claude Code built-in.** When the user types
   `/context-save`, invoke this skill via the Skill tool. The old `/checkpoint`
   name collided with Claude Code's native `/rewind` alias — the rename fixed that.

@@ -150,6 +150,11 @@ export const SKILL_COVERAGE: Record<string, SkillCoverage> = {
   benchmark: { gate: ['test/skill-e2e-benchmark-providers.test.ts', 'test/skill-coverage-floor.test.ts'], periodic: [] },
   'benchmark-models': { gate: ['test/skill-coverage-floor.test.ts'], periodic: [] },
   codex: { gate: ['test/skill-coverage-floor.test.ts'], periodic: [] },
+  'preos-handoff': {
+    gate: ['test/skill-coverage-floor.test.ts'],
+    periodic: [],
+    rationale: 'PREOS handoff is a bounded routing bridge; deterministic integration semantics are additionally validated by scripts/validate-preos-integration.py.',
+  },
   retro: {
     gate: ['test/skill-coverage-floor.test.ts'],
     periodic: ['test/regression-1624-retro-stale-base.test.ts'],
