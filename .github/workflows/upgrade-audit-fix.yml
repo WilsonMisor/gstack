@@ -12,53 +12,55 @@ jobs:
   remediate:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
         with:
           ref: upgrade/blueprint-preos-handoffs
           fetch-depth: 0
       - uses: oven-sh/setup-bun@v2
-      - name: Apply all available in-range security fixes
+      - name: Apply targeted security overrides
         shell: bash
         run: |
-          set +e
-          bun audit fix
-          rc=$?
-          set -e
-          echo "bun audit fix exit code: $rc (nonzero is expected if range-blocked findings remain)"
-      - name: Enforce lockfile-only remediation
+          set -euo pipefail
+          node <<'NODE'
+          const fs = require('fs');
+          const path = 'package.json';
+          const pkg = JSON.parse(fs.readFileSync(path, 'utf8'));
+          pkg.overrides = {
+            ...(pkg.overrides || {}),
+            'image-size': 'npm:image-size-next@2.1.1',
+            'ip-address': '10.3.1',
+            'sharp': '0.35.3'
+          };
+          fs.writeFileSync(path, JSON.stringify(pkg, null, 2) + '\n');
+          NODE
+          bun install
+      - name: Verify no HIGH dependency advisories remain
+        run: bun audit --audit-level=high
+      - name: Verify build
+        run: bun run build
+      - name: Verify free test suite
+        run: bun run test:free
+      - name: Enforce bounded dependency-only change
         shell: bash
         run: |
           set -euo pipefail
           changed="$(git diff --name-only)"
           printf 'Changed files:\n%s\n' "$changed"
-          if [ -z "$changed" ]; then
-            echo 'No in-range remediation was available.' >&2
-            exit 2
-          fi
-          unexpected="$(printf '%s\n' "$changed" | grep -v '^bun.lock$' || true)"
+          unexpected="$(printf '%s\n' "$changed" | grep -Ev '^(package.json|bun.lock)$' || true)"
           if [ -n "$unexpected" ]; then
-            echo 'Refusing remediation because files other than bun.lock changed:' >&2
+            echo 'Refusing remediation because unrelated files changed:' >&2
             printf '%s\n' "$unexpected" >&2
             exit 3
           fi
-      - name: Show residual high-severity findings
-        shell: bash
-        run: |
-          set +e
-          bun audit --audit-level=high
-          rc=$?
-          set -e
-          echo "Residual audit exit code: $rc"
-      - name: Verify build with remediated lockfile
-        run: bun run build
-      - name: Commit lockfile remediation
+          test -n "$changed"
+      - name: Commit targeted dependency remediation
         shell: bash
         run: |
           set -euo pipefail
           git config user.name 'WilsonMisor'
           git config user.email '100686890+WilsonMisor@users.noreply.github.com'
-          git add bun.lock
-          git commit -m 'Remediate vulnerable transitive dependencies'
+          git add package.json bun.lock
+          git commit -m 'Resolve remaining high dependency advisories'
           git push origin HEAD:upgrade/blueprint-preos-handoffs
