@@ -1,7 +1,7 @@
 ---
 name: preos-handoff
 version: 1.1.0
-description: Convert an approved gstack planning result into a bounded structured handoff for the AI Product Delivery Blueprint and PREOS without creating duplicate project truth. (gstack)
+description: Convert an approved gstack plan into a bounded Blueprint/PREOS handoff without creating duplicate project truth. (gstack)
 triggers:
   - hand approved plan to preos
   - preos handoff
