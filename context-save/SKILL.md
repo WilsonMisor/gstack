@@ -2,7 +2,7 @@
 name: context-save
 preamble-tier: 2
 version: 1.0.0
-description: Save supplementary semantic working context. (gstack)
+description: Save semantic notes. (gstack)
 allowed-tools:
   - Bash
   - Read
