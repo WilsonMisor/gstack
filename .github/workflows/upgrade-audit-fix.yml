@@ -1,0 +1,52 @@
+name: One-shot dependency remediation
+
+on:
+  push:
+    branches:
+      - upgrade/blueprint-preos-handoffs
+
+permissions:
+  contents: write
+
+jobs:
+  remediate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: upgrade/blueprint-preos-handoffs
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@v2
+      - name: Apply in-range security fixes
+        run: bun audit fix
+      - name: Enforce lockfile-only remediation
+        shell: bash
+        run: |
+          set -euo pipefail
+          changed="$(git diff --name-only)"
+          printf 'Changed files:\n%s\n' "$changed"
+          if [ -z "$changed" ]; then
+            echo 'No in-range remediation was available.' >&2
+            exit 2
+          fi
+          unexpected="$(printf '%s\n' "$changed" | grep -v '^bun.lock$' || true)"
+          if [ -n "$unexpected" ]; then
+            echo 'Refusing remediation because files other than bun.lock changed:' >&2
+            printf '%s\n' "$unexpected" >&2
+            exit 3
+          fi
+      - name: Verify high-severity audit is clean
+        run: bun audit --audit-level=high
+      - name: Verify build
+        run: bun run build
+      - name: Commit lockfile remediation
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'WilsonMisor'
+          git config user.email '100686890+WilsonMisor@users.noreply.github.com'
+          git add bun.lock
+          git commit -m 'Remediate vulnerable transitive dependencies'
+          git push origin HEAD:upgrade/blueprint-preos-handoffs
