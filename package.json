@@ -80,7 +80,10 @@
     "xterm-addon-fit": "^0.8.0"
   },
   "overrides": {
-    "adm-zip": "^0.6.0"
+    "adm-zip": "^0.6.0",
+    "image-size": "npm:image-size-next@2.1.1",
+    "ip-address": "10.3.1",
+    "sharp": "0.35.3"
   },
   "patchedDependencies": {
     "playwright-core@1.62.1": "patches/playwright-core@1.62.1.patch"
