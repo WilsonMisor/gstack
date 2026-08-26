@@ -1,0 +1,83 @@
+name: One-shot lowercase GHCR namespace fix
+
+on:
+  push:
+    branches:
+      - upgrade/blueprint-preos-handoffs
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-validate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: upgrade/blueprint-preos-handoffs
+          fetch-depth: 0
+      - name: Patch all GHCR image references consistently
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          from pathlib import Path
+
+          lowercase = 'ghcr.io/wilsonmisor/gstack/ci'
+
+          for name in ['.github/workflows/evals.yml', '.github/workflows/evals-periodic.yml']:
+              path = Path(name)
+              text = path.read_text(encoding='utf-8')
+              old = '  IMAGE: ghcr.io/${{ github.repository }}/ci\n'
+              if text.count(old) != 1:
+                  raise SystemExit(f'{name}: expected exactly one dynamic IMAGE line, found {text.count(old)}')
+              new = (
+                  '  # OCI/GHCR repository names must be lowercase; github.repository preserves display casing.\n'
+                  f'  IMAGE: {lowercase}\n'
+              )
+              path.write_text(text.replace(old, new, 1), encoding='utf-8')
+
+          path = Path('.github/workflows/ci-image.yml')
+          text = path.read_text(encoding='utf-8')
+          marker = '  workflow_dispatch:\n\njobs:\n'
+          if text.count(marker) != 1:
+              raise SystemExit('ci-image.yml: workflow_dispatch/jobs marker drifted')
+          text = text.replace(
+              marker,
+              '  workflow_dispatch:\n\nenv:\n'
+              '  # OCI/GHCR repository names must be lowercase; github.repository preserves display casing.\n'
+              f'  IMAGE: {lowercase}\n\njobs:\n',
+              1,
+          )
+          dynamic = 'ghcr.io/${{ github.repository }}/ci'
+          if text.count(dynamic) != 5:
+              raise SystemExit(f'ci-image.yml: expected 5 dynamic image references, found {text.count(dynamic)}')
+          text = text.replace(dynamic, '${{ env.IMAGE }}')
+          path.write_text(text, encoding='utf-8')
+          PY
+      - name: Enforce three-file bounded change and lowercase invariant
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected=$'.github/workflows/ci-image.yml\n.github/workflows/evals-periodic.yml\n.github/workflows/evals.yml'
+          changed="$(git diff --name-only | sort)"
+          printf 'Changed files:\n%s\n' "$changed"
+          test "$changed" = "$expected"
+          ! grep -R -F 'ghcr.io/${{ github.repository }}/ci' \
+            .github/workflows/ci-image.yml \
+            .github/workflows/evals.yml \
+            .github/workflows/evals-periodic.yml
+          grep -q 'IMAGE: ghcr.io/wilsonmisor/gstack/ci' .github/workflows/ci-image.yml
+          grep -q 'IMAGE: ghcr.io/wilsonmisor/gstack/ci' .github/workflows/evals.yml
+          grep -q 'IMAGE: ghcr.io/wilsonmisor/gstack/ci' .github/workflows/evals-periodic.yml
+      - name: Commit validated GHCR namespace fix
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'WilsonMisor'
+          git config user.email '100686890+WilsonMisor@users.noreply.github.com'
+          git add .github/workflows/ci-image.yml .github/workflows/evals.yml .github/workflows/evals-periodic.yml
+          git commit -m 'Use lowercase GHCR image namespace'
+          git push origin HEAD:upgrade/blueprint-preos-handoffs
