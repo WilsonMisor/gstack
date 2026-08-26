@@ -39,6 +39,7 @@ When PREOS or the Blueprint identifies a specialist need, use the namespaced Cod
 | Implemented UI design audit | `gstack-design-review` |
 | Browser research / inspection | `gstack-browse` |
 | Performance / comparative evidence | `gstack-benchmark` |
+| Approved gstack plan -> Blueprint/PREOS production planning | `gstack-preos-handoff` (canonical skill `preos-handoff`) |
 | Release preparation | `gstack-ship` |
 | Approved production landing/deployment | `gstack-land-and-deploy` |
 | Canary verification | `gstack-canary` |
@@ -47,6 +48,38 @@ When PREOS or the Blueprint identifies a specialist need, use the namespaced Cod
 | Post-release reflection | `gstack-retro` |
 
 Optional execution-safety tools such as `gstack-careful`, `gstack-freeze`, `gstack-guard`, and `gstack-unfreeze` may add safety but never replace Blueprint/PREOS gates, repository permissions, or accountable human approval.
+
+## Governed planning handoff
+
+For PREOS-active projects, an approved `/autoplan` or equivalent gstack planning result is specialist planning evidence, not release readiness and not permission to skip the implementation lifecycle.
+
+The integrated route is:
+
+```text
+gstack planning / autoplan approved
+        |
+gstack-preos-handoff
+        |
+Blueprint/PREOS change impact + risk delta
+        |
+preos-production-plan
+        |
+canonical Blueprint AI Task Packet
+        |
+Codex implementation
+        |
+PREOS implementation assurance + independent gstack review/QA
+        |
+PREOS G0-G11
+        |
+accountable human production approval
+        |
+gstack ship/deploy/canary
+```
+
+The `preos-handoff` skill must return approved plan identity/path, requirement/architecture/design/ADR identifiers where available, assumptions, open questions, security/specialist findings, scope/non-scope, unresolved conflicts, human decisions, mutation permission and the PREOS next route. It must use `UNKNOWN` rather than inventing missing IDs.
+
+For PREOS-active work, do not route directly from planning to `gstack-ship` merely because generic standalone gstack supports that workflow.
 
 ## Handoff contract from PREOS / Blueprint
 
@@ -81,6 +114,16 @@ The specialist should return, as applicable:
 
 A gstack result is specialist evidence, not an automatic PREOS GREEN result or Blueprint gate approval.
 
+## AI-session continuity boundary
+
+`gstack-context-save` / `gstack-context-restore` provide semantic session notes — they answer “what were we doing?”. They do not prove “what is actually verified and safe?”.
+
+If a restored context indicates production-relevant Codex implementation had started or may have been interrupted, route through `gstack-preos-handoff`, which must return `PREOS RECOVERY REQUIRED` and hand the decision to PREOS deterministic recovery. Do not resume coding from gstack context alone.
+
+PREOS recovery owns comparison of Project Contract/task/source bindings, PREOS runtime state, Git branch/HEAD/working tree, persisted approvals and evidence freshness. Valid recovery decisions are `SAFE_TO_RESUME`, `BLOCKED`, or `RECOVERY_CONFLICT`. Resume only from PREOS's first unverified action.
+
+Conversation memory is never authoritative execution state.
+
 ## Authority rule
 
 gstack must not:
@@ -90,7 +133,8 @@ gstack must not:
 3. convert PREOS UNKNOWN/HUMAN REVIEW/RED into GREEN;
 4. accept security, privacy, financial, legal, operational, or production risk on behalf of a human;
 5. authorize production merely because `gstack-ship` or `gstack-land-and-deploy` is available;
-6. store authoritative PREOS state under gstack state directories.
+6. store authoritative PREOS state under gstack state directories;
+7. treat an approved plan or restored context as authority to bypass PREOS implementation/recovery gates.
 
 If gstack advice conflicts with a hard Blueprint/PREOS rule or approved project baseline, record the conflict and route it to accountable human resolution.
 

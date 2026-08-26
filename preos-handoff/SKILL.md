@@ -1,0 +1,91 @@
+---
+name: preos-handoff
+version: 1.0.0
+description: Convert an approved gstack planning result into a bounded structured handoff for the AI Product Delivery Blueprint and PREOS without creating duplicate project truth. (gstack)
+triggers:
+  - hand approved plan to preos
+  - preos handoff
+  - continue governed implementation
+  - resume governed implementation
+allowed-tools:
+  - Bash
+  - Read
+  - Glob
+  - Grep
+---
+<!-- AUTO-GENERATED from SKILL.md.tmpl — do not edit directly -->
+<!-- Regenerate: bun run gen:skill-docs -->
+
+
+## When to invoke this skill
+
+Use after /autoplan or specialist planning when PREOS is active, and whenever a restored gstack context involves interrupted production implementation that must be reconciled before coding resumes.
+This bridge never creates a Project Contract, copies PREOS controls, authorizes production, or treats gstack context as execution truth.
+
+# /preos-handoff — Blueprint/PREOS Handoff Bridge
+
+Use this only in the integrated AI Product Delivery Blueprint + PREOS + gstack + Codex system. It is a specialist bridge, not a new governance or implementation authority.
+
+## Hard boundaries
+
+1. The Blueprint owns lifecycle, approved requirements/architecture and the canonical AI Task Packet.
+2. PREOS owns the Project Contract, production risk/control/evidence state, deterministic recovery and G0-G11.
+3. gstack owns specialist planning/review/QA/release expertise.
+4. Codex implements approved bounded AI Task Packets.
+5. Accountable humans own consequential risk acceptance and production authorization.
+6. Do not create `.gstack/project-contract/`, copy the PREOS 75-control baseline, create PREOS runtime state under `GSTACK_STATE_ROOT`, or turn a planning result into production approval.
+
+## Detect governed state
+
+Inspect the application repository for `.ai-product-delivery/`, a current Project Contract, active PREOS state, and the approved gstack plan. If PREOS is not active, say `PREOS HANDOFF NOT APPLICABLE` and return to the normal standalone gstack workflow without pretending this bridge is required.
+
+## Interrupted implementation gate
+
+If the request is to resume/continue work and the saved gstack context shows that production-relevant Codex implementation had already started or may have been interrupted:
+
+1. Return `PREOS RECOVERY REQUIRED`.
+2. Identify the project/task/plan references available from the context.
+3. Route to the installed `$preos` recovery intent (for example: “recover this interrupted production implementation and determine whether it is SAFE_TO_RESUME, BLOCKED, or RECOVERY_CONFLICT”).
+4. Do **not** recommend editing code until PREOS returns `SAFE_TO_RESUME`.
+5. Resume from PREOS's first unverified action, not from the last conversational topic.
+
+`gstack-context-restore` answers “what were we doing?”; PREOS recovery answers “what is actually verified and safe?”.
+
+## Approved-plan handoff
+
+For an approved gstack plan/autoplan result, read only the governing artifacts needed to produce this structure:
+
+```text
+PREOS HANDOFF READY
+
+approved_plan_id: <stable plan identifier or path+hash>
+plan_artifact: <path>
+project_contract: <identifier/version/hash if already available>
+requirement_ids: <approved requirement IDs>
+architecture_ids: <ADRs/architecture baseline IDs>
+design_ids: <design baseline IDs when applicable>
+known_assumptions: <bounded list>
+open_questions: <unresolved questions>
+security_considerations: <relevant specialist findings>
+specialist_findings: <finding IDs / evidence references>
+scope_boundaries: <approved scope and explicit non-scope>
+unresolved_conflicts: <source/plan/architecture conflicts>
+human_decisions: <pending consequential decisions>
+mutation_permission: <review-only or approved implementation scope>
+recommended_next_route: Blueprint/PREOS change-impact and risk delta -> $preos-production-plan -> canonical AI Task Packet -> Codex
+```
+
+Do not invent IDs that do not exist. Use `UNKNOWN` or list the missing governing artifact instead of guessing.
+
+## Release separation
+
+An approved planning result is **not** release readiness. For PREOS-active projects, do not route directly from planning to `/ship`. Required production implementation, independent review/QA, PREOS G0-G11 and accountable human production approval occur before gstack ship/deploy/canary.
+
+## Completion
+
+Return exactly one primary status:
+
+- `PREOS HANDOFF READY` — approved planning output is bounded and ready for Blueprint/PREOS change impact and production planning;
+- `PREOS RECOVERY REQUIRED` — interrupted implementation must be reconciled by PREOS before code changes;
+- `PREOS HANDOFF BLOCKED` — missing/conflicting governed input or human decision prevents a safe handoff;
+- `PREOS HANDOFF NOT APPLICABLE` — PREOS is inactive and normal standalone gstack routing applies.
