@@ -10,8 +10,10 @@ AUTOPLAN_TMPL = ROOT / "autoplan" / "SKILL.md.tmpl"
 AUTOPLAN = ROOT / "autoplan" / "SKILL.md"
 RESTORE_TMPL = ROOT / "context-restore" / "SKILL.md.tmpl"
 RESTORE = ROOT / "context-restore" / "SKILL.md"
+SAVE_TMPL = ROOT / "context-save" / "SKILL.md.tmpl"
+SAVE = ROOT / "context-save" / "SKILL.md"
 
-for path in [DOC, HANDOFF_TMPL, HANDOFF, AUTOPLAN_TMPL, AUTOPLAN, RESTORE_TMPL, RESTORE]:
+for path in [DOC, HANDOFF_TMPL, HANDOFF, AUTOPLAN_TMPL, AUTOPLAN, RESTORE_TMPL, RESTORE, SAVE_TMPL, SAVE]:
     if not path.is_file():
         print(f"FAIL: {path.relative_to(ROOT)} is missing")
         raise SystemExit(1)
@@ -124,6 +126,28 @@ for token in [
         print(f"FAIL: context-restore PREOS continuity routing missing semantic anchor: {token}")
         raise SystemExit(1)
 
+save_template = SAVE_TMPL.read_text(encoding="utf-8")
+generated_save = SAVE.read_text(encoding="utf-8")
+for label, save_text in [("template", save_template), ("generated", generated_save)]:
+    for token in [
+        "supplementary semantic",
+        "never authoritative execution state",
+        "SAFE_TO_RESUME",
+        "PREOS deterministic recovery",
+        "Git, approved Blueprint artifacts",
+    ]:
+        if token not in save_text:
+            print(f"FAIL: context-save {label} continuity boundary missing semantic anchor: {token}")
+            raise SystemExit(1)
+    for prohibited_save in [
+        "full working context",
+        "can resume without losing a beat",
+        "pick up without losing a beat",
+    ]:
+        if prohibited_save in save_text:
+            print(f"FAIL: context-save {label} still implies authoritative automatic resume: {prohibited_save}")
+            raise SystemExit(1)
+
 for prohibited in [
     "gstack authorizes production",
     "gstack may accept production risk",
@@ -131,7 +155,7 @@ for prohibited in [
     "gstack Project Contract",
     "gstack 75-control baseline",
 ]:
-    if prohibited in text or prohibited in handoff or prohibited in autoplan_text or prohibited in restore_text:
+    if prohibited in text or prohibited in handoff or prohibited in autoplan_text or prohibited in restore_text or prohibited in save_template or prohibited in generated_save:
         print(f"FAIL: prohibited authority statement present: {prohibited}")
         raise SystemExit(1)
 
