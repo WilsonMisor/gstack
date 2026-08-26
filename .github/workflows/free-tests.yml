@@ -7,12 +7,14 @@ name: Free Tests
 # so a truncated or summary-less run can never report green.
 #
 # GitHub-hosted ubuntu-latest is materially smaller than the original
-# ubicloud-standard-8 runner. Running multiple 200+ file shard processes on
-# one host exposed resource-contention failures in external compiler/daemon/
-# child-process integration tests. Use the runner's stable hash shards as a
-# CI matrix instead: each shard is serial inside its own isolated checkout,
-# while GitHub supplies parallelism across runners. This is the documented V3
-# fallback and avoids weakening individual behavioral tests with retries.
+# ubicloud-standard-8 runner. Running the full local concurrency model on one
+# hosted runner exposed resource-contention failures in external compiler,
+# daemon, and child-process integration tests. The runner's canonical logical
+# shard count is 20. Preserve those exact stable-hash process boundaries, then
+# distribute the 20 independent shard invocations across six hosted workers.
+# Each invocation gets a fresh Bun process, while each worker reuses its
+# isolated checkout. This preserves canonical test semantics without retries,
+# test exclusions, or assertion weakening.
 #
 # Deliberately SECRETLESS: free tests make no API calls, so this lane gets no
 # provider keys at all — least privilege, and fork PRs get real test signal
@@ -20,7 +22,8 @@ name: Free Tests
 # them). test/free-tests-workflow-wiring.test.ts fails CI if a secret sneaks in.
 #
 # The aggregate `free-tests` job preserves a stable check name for branch
-# protection while requiring every matrix shard to succeed.
+# protection while requiring every worker, and therefore all 20 canonical
+# logical shards, to succeed.
 
 on:
   pull_request:
@@ -45,12 +48,12 @@ permissions:
   contents: read
 
 jobs:
-  free-test-shard:
-    name: free-test-shard (${{ matrix.shard }}/3)
+  free-test-worker:
+    name: free-test-worker (${{ matrix.worker }}/6)
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3]
+        worker: [1, 2, 3, 4, 5, 6]
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -112,29 +115,46 @@ jobs:
       - name: Build server-node bundle (loaded by browse cli imports)
         run: bash browse/scripts/build-node-server.sh
 
-      - name: Run free suite shard
-        run: xvfb-run -a bun run test:free --shards 3 --shard ${{ matrix.shard }}
+      - name: Run assigned canonical free suite shards
+        env:
+          WORKER: ${{ matrix.worker }}
+        run: |
+          status=0
+          shard="$WORKER"
+          while [ "$shard" -le 20 ]; do
+            echo "::group::canonical free-test shard ${shard}/20"
+            if xvfb-run -a bun run test:free --shards 20 --shard "$shard"; then
+              echo "canonical shard ${shard}/20 passed"
+            else
+              rc=$?
+              echo "canonical shard ${shard}/20 failed with exit ${rc}"
+              status=1
+            fi
+            echo "::endgroup::"
+            shard=$((shard + 6))
+          done
+          exit "$status"
 
-      # Every shard has its own checkout and log namespace. Unique artifact
-      # names avoid upload collisions when more than one shard fails.
+      # Every worker has its own checkout and log namespace. Unique artifact
+      # names avoid upload collisions when more than one worker fails.
       - name: Upload shard logs on failure
         if: failure()
         uses: actions/upload-artifact@v7
         with:
-          name: free-test-shard-logs-${{ matrix.shard }}
+          name: free-test-worker-logs-${{ matrix.worker }}
           path: /tmp/gstack-free-test-*.log
           if-no-files-found: ignore
 
   free-tests:
     name: free-tests
-    needs: free-test-shard
+    needs: free-test-worker
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
-      - name: Require every Linux shard to pass
+      - name: Require every Linux worker to pass
         env:
-          SHARD_RESULT: ${{ needs.free-test-shard.result }}
+          WORKER_RESULT: ${{ needs.free-test-worker.result }}
         run: |
-          echo "matrix result: $SHARD_RESULT"
-          test "$SHARD_RESULT" = success
+          echo "matrix result: $WORKER_RESULT"
+          test "$WORKER_RESULT" = success
