@@ -1,0 +1,183 @@
+name: One-shot context-save continuity boundary patch
+
+on:
+  push:
+    branches:
+      - upgrade/blueprint-preos-handoffs
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-regenerate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: upgrade/blueprint-preos-handoffs
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Tighten context-save continuity boundary and validator
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path('context-save/SKILL.md.tmpl')
+          text = p.read_text(encoding='utf-8')
+
+          old = '''description: |
+            Save working context. Captures git state, decisions made, and remaining work
+            so any future session can pick up without losing a beat.
+            Use when asked to "save progress", "save state", "context save", or
+            "save my work". Pair with /context-restore to resume later.
+          '''
+          new = '''description: |
+            Save supplementary semantic working context. Captures git state, decisions made,
+            and remaining work so a future session can understand what was being done.
+            It does not establish verified execution state or permission to resume implementation.
+            Use when asked to "save progress", "save state", "context save", or
+            "save my work". Pair with /context-restore to reconstruct semantic context later.
+          '''
+          if old not in text:
+              raise SystemExit('context-save description anchor not found')
+          text = text.replace(old, new, 1)
+
+          old = '''You are a **Staff Engineer who keeps meticulous session notes**. Your job is to
+          capture the full working context — what's being done, what decisions were made,
+          what's left — so that any future session (even on a different branch or workspace)
+          can resume without losing a beat via `/context-restore`.
+
+          **HARD GATE:** Do NOT implement code changes. This skill captures state only.
+          '''
+          new = '''You are a **Staff Engineer who keeps meticulous session notes**. Your job is to
+          capture supplementary semantic context — what's being worked on, what decisions were
+          made, and what's left — so that a future session can reconstruct intent via
+          `/context-restore` without treating these notes as execution truth.
+
+          **HARD GATE:** Do NOT implement code changes. This skill captures semantic context only.
+
+          ## Execution-state boundary
+
+          A saved gstack context answers **what were we doing?** It does not answer **what is
+          verified, approved, current, or safe to resume?** Conversation memory and saved gstack
+          notes are supplementary. Git, approved Blueprint artifacts, the PREOS Project Contract,
+          PREOS runtime/recovery state, evidence, and accountable human decisions remain authoritative.
+
+          For Blueprint/PREOS-governed implementation, never claim `SAFE_TO_RESUME`, never copy or
+          recreate PREOS runtime state under `GSTACK_STATE_ROOT`, and never use a saved context as
+          permission to edit code. `/context-restore` must route potentially interrupted governed
+          implementation through PREOS deterministic recovery before implementation resumes.
+          '''
+          if old not in text:
+              raise SystemExit('context-save intro anchor not found')
+          text = text.replace(old, new, 1)
+
+          old = '''Restore later with /context-restore.
+          '''
+          new = '''Restore semantic context later with /context-restore.
+          Governed implementation may still require PREOS deterministic recovery before code edits resume.
+          '''
+          if old not in text:
+              raise SystemExit('context-save confirmation anchor not found')
+          text = text.replace(old, new, 1)
+
+          old = '''- **Infer, don't interrogate.** Use git state and conversation context to fill in
+            the file. Only use AskUserQuestion if the title genuinely cannot be inferred.
+          - **This is a gstack skill, not a Claude Code built-in.** When the user types
+          '''
+          new = '''- **Infer, don't interrogate.** Use git state and conversation context to fill in
+            the file. Only use AskUserQuestion if the title genuinely cannot be inferred.
+          - **Saved semantic context is supplementary, never authoritative execution state.** It must
+            not override Git, Blueprint/PREOS governed artifacts, evidence, approvals, or recovery results.
+          - **Do not claim automatic resume safety.** In PREOS-governed interrupted implementation,
+            `/context-restore` routes through PREOS and only PREOS reconciliation can return `SAFE_TO_RESUME`.
+          - **This is a gstack skill, not a Claude Code built-in.** When the user types
+          '''
+          if old not in text:
+              raise SystemExit('context-save rules anchor not found')
+          text = text.replace(old, new, 1)
+          p.write_text(text, encoding='utf-8')
+
+          v = Path('scripts/validate-preos-integration.py')
+          text = v.read_text(encoding='utf-8')
+
+          old = '''RESTORE_TMPL = ROOT / "context-restore" / "SKILL.md.tmpl"
+          RESTORE = ROOT / "context-restore" / "SKILL.md"
+
+          for path in [DOC, HANDOFF_TMPL, HANDOFF, AUTOPLAN_TMPL, AUTOPLAN, RESTORE_TMPL, RESTORE]:
+          '''
+          new = '''RESTORE_TMPL = ROOT / "context-restore" / "SKILL.md.tmpl"
+          RESTORE = ROOT / "context-restore" / "SKILL.md"
+          SAVE_TMPL = ROOT / "context-save" / "SKILL.md.tmpl"
+          SAVE = ROOT / "context-save" / "SKILL.md"
+
+          for path in [DOC, HANDOFF_TMPL, HANDOFF, AUTOPLAN_TMPL, AUTOPLAN, RESTORE_TMPL, RESTORE, SAVE_TMPL, SAVE]:
+          '''
+          if old not in text:
+              raise SystemExit('validator path anchor not found')
+          text = text.replace(old, new, 1)
+
+          anchor = '''for prohibited in [
+          '''
+          insertion = '''save_template = SAVE_TMPL.read_text(encoding="utf-8")
+          generated_save = SAVE.read_text(encoding="utf-8")
+          for label, save_text in [("template", save_template), ("generated", generated_save)]:
+              for token in [
+                  "supplementary semantic",
+                  "never authoritative execution state",
+                  "SAFE_TO_RESUME",
+                  "PREOS deterministic recovery",
+                  "Git, approved Blueprint artifacts",
+              ]:
+                  if token not in save_text:
+                      print(f"FAIL: context-save {label} continuity boundary missing semantic anchor: {token}")
+                      raise SystemExit(1)
+              for prohibited_save in [
+                  "full working context",
+                  "can resume without losing a beat",
+                  "pick up without losing a beat",
+              ]:
+                  if prohibited_save in save_text:
+                      print(f"FAIL: context-save {label} still implies authoritative automatic resume: {prohibited_save}")
+                      raise SystemExit(1)
+
+          for prohibited in [
+          '''
+          if anchor not in text:
+              raise SystemExit('validator prohibited anchor not found')
+          text = text.replace(anchor, insertion, 1)
+
+          old = '''    if prohibited in text or prohibited in handoff or prohibited in autoplan_text or prohibited in restore_text:
+          '''
+          new = '''    if prohibited in text or prohibited in handoff or prohibited in autoplan_text or prohibited in restore_text or prohibited in save_template or prohibited in generated_save:
+          '''
+          if old not in text:
+              raise SystemExit('validator prohibited scope anchor not found')
+          text = text.replace(old, new, 1)
+          v.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Regenerate all host skill docs
+        run: bun run gen:skill-docs --host all
+
+      - name: Validate PREOS integration before commit
+        run: python3 scripts/validate-preos-integration.py
+
+      - name: Remove one-shot workflow and commit generated result
+        shell: bash
+        run: |
+          rm -f .github/workflows/upgrade-context-save-selfpatch.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add context-save/SKILL.md.tmpl context-save/SKILL.md scripts/validate-preos-integration.py .github/workflows/upgrade-context-save-selfpatch.yml
+          git diff --cached --check
+          git commit -m 'Clarify gstack context-save recovery boundary'
+          git push origin HEAD:upgrade/blueprint-preos-handoffs
