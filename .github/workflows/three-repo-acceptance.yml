@@ -71,6 +71,10 @@ jobs:
         working-directory: gstack
         run: python3 scripts/validate-preos-integration.py
 
+      - name: Enforce Codex Project Contract CI applicability
+        working-directory: gstack
+        run: python3 scripts/validate-codex-project-contract-applicability.py
+
       - name: Run cross repository invariants and disposable non WordPress E2E
         run: |
           python3 gstack/scripts/validate-three-repo-acceptance.py \
