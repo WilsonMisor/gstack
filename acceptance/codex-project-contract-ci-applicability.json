@@ -1,0 +1,97 @@
+{
+  "schema_version": "1.0",
+  "project_contract": "three-repository-upgrade",
+  "bounded_implementation_engine": "OpenAI Codex",
+  "gstack_role": "multi-host specialist workforce",
+  "gstack_multi_host_compatibility_preserved": true,
+  "non_codex_host_failures_block_this_project_contract": false,
+  "applicability_states": [
+    "APPLIES",
+    "CONDITIONAL",
+    "NOT_APPLICABLE",
+    "ESCALATE",
+    "FORBIDDEN"
+  ],
+  "credential_boundary": {
+    "required_for_this_project_contract": [
+      "OpenAI Codex authentication when an authenticated Codex acceptance check is executed"
+    ],
+    "must_never_be_required_for_this_project_contract": [
+      "ANTHROPIC_API_KEY",
+      "Claude Code login",
+      "GEMINI_API_KEY",
+      "Gemini CLI login"
+    ]
+  },
+  "checks": [
+    {
+      "id": "three-repo-acceptance",
+      "applicability": "APPLIES",
+      "blocking": true,
+      "reason": "Proves exact Blueprint, PREOS, and gstack candidate integration and authority boundaries."
+    },
+    {
+      "id": "wordpress-three-repo-e2e",
+      "applicability": "APPLIES",
+      "blocking": true,
+      "reason": "Proves the disposable WordPress lifecycle required by the master plan."
+    },
+    {
+      "id": "e2e-codex",
+      "workflow_test": "test/codex-e2e.test.ts",
+      "applicability": "APPLIES",
+      "blocking": true,
+      "reason": "OpenAI Codex is the bounded implementation engine for this Project Contract."
+    },
+    {
+      "id": "linux-free-tests",
+      "applicability": "APPLIES",
+      "blocking": true,
+      "reason": "Repository-controlled implementation and integration regression coverage."
+    },
+    {
+      "id": "windows-tests",
+      "applicability": "APPLIES",
+      "blocking": true,
+      "reason": "Required Windows host compatibility for the project environment."
+    },
+    {
+      "id": "quality-security-integration",
+      "applicability": "APPLIES",
+      "blocking": true,
+      "reason": "Repository quality, security, dependency, workflow, and PREOS integration gates."
+    },
+    {
+      "id": "e2e-pty-plan-smoke",
+      "workflow_test": "test/skill-e2e-office-hours-auto-mode.test.ts test/skill-e2e-plan-mode-no-op.test.ts",
+      "host": "Claude Code interactive TUI",
+      "credential": "ANTHROPIC_API_KEY or Claude Code login",
+      "applicability": "NOT_APPLICABLE",
+      "blocking": false,
+      "reason": "This is an inherited Claude-host compatibility test. Claude Code is not the bounded implementation engine in this Project Contract. Preserve and run it for gstack multi-host compatibility when credentials are available, but its failure or missing Anthropic credential cannot block the Codex release decision."
+    },
+    {
+      "id": "e2e-gemini",
+      "workflow_test": "test/gemini-e2e.test.ts",
+      "host": "Gemini CLI",
+      "credential": "GEMINI_API_KEY or Gemini login",
+      "applicability": "NOT_APPLICABLE",
+      "blocking": false,
+      "reason": "Inherited non-Codex host compatibility. Preserve it, but do not make it a Codex Project Contract release prerequisite."
+    },
+    {
+      "id": "other-non-codex-host-specific-checks",
+      "applicability": "CONDITIONAL",
+      "blocking": false,
+      "condition": "Only blocking if a future human-approved Project Contract explicitly adds that host as a required execution engine or release target.",
+      "reason": "Host-specific compatibility must follow the Project Contract rather than silently expanding release scope."
+    }
+  ],
+  "invariants": [
+    "Do not delete, weaken, skip globally, or fake-green inherited non-Codex host tests.",
+    "Do not convert gstack into a Codex-only repository; preserve its broader specialist and multi-host compatibility surface.",
+    "Do not request Anthropic, Gemini, or other non-Codex credentials merely to satisfy this Codex Project Contract.",
+    "A non-Codex host-specific failure is NOT_APPLICABLE to this Project Contract unless a human-approved Project Contract explicitly makes that host required.",
+    "Production authorization remains an accountable-human decision after all APPLIES checks pass."
+  ]
+}
