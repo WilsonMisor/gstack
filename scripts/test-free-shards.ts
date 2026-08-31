@@ -150,6 +150,11 @@ const WINDOWS_FRAGILE_PATTERNS: Array<{ pattern: RegExp; reason: string }> = [
   // BROWSE_HEADLESS_SKIP=1 to skip the browser launch but still need a working
   // server, which they don't get on Windows.
   { pattern: /BROWSE_HEADLESS_SKIP|spawn\(\[['"]bun['"],\s*['"]run['"]/, reason: 'spawns the browse server subprocess (Bun-driven path is Windows-broken)' },
+  // Windows runners without Developer Mode cannot create symlinks through
+  // Node/Bun's fs.symlinkSync (EPERM). The Windows-safe lane must not include
+  // POSIX symlink-shape fixtures; keep explicit force-includes for files whose
+  // symlink tests self-skip on win32.
+  { pattern: /\bfs\.symlinkSync\(/, reason: 'creates symlink fixtures (requires Developer Mode on Windows)' },
 ];
 
 // Explicit known-Windows-incompatible test files that don't fit a regex
@@ -251,6 +256,14 @@ export const KNOWN_WINDOWS_INCOMPATIBLE: Array<{ file: string; reason: string }>
   {
     file: 'browse/test/security-audit-r2.test.ts',
     reason: 'symlink-attack fixtures (evil-link) need Developer Mode CI runners lack; expect(toThrow) fires unhandled on Windows',
+  },
+  {
+    file: 'test/hermetic-skills-seeding.test.ts',
+    reason: 'imports hermeticSkillsConfigDir() at module load; the seeder creates SKILL.md and sections symlinks, which require Developer Mode on Windows',
+  },
+  {
+    file: 'test/hermetic-wiring.test.ts',
+    reason: 'calls hermeticSkillsConfigDir(); the seeder creates SKILL.md and sections symlinks, which require Developer Mode on Windows',
   },
 ];
 

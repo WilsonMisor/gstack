@@ -94,6 +94,12 @@ describe('test-free-shards: Windows curation', () => {
     });
   });
 
+  test('detects symlink fixture creation', () => {
+    withTempFile(`fs.symlinkSync(target, link);`, (f) => {
+      expect(detectWindowsFragility(f)?.reason).toBe('creates symlink fixtures (requires Developer Mode on Windows)');
+    });
+  });
+
   test('Windows-safe code passes the filter', () => {
     withTempFile(`import { spawn } from 'child_process'; spawn(claude.command, args);`, (f) => {
       expect(detectWindowsFragility(f)).toBeNull();
@@ -110,6 +116,12 @@ describe('test-free-shards: Windows curation', () => {
     for (const { reason } of result.excluded) {
       expect(reason.length).toBeGreaterThan(0);
     }
+    const excluded = new Map(result.excluded.map((e) => [e.file, e.reason]));
+    expect(excluded.get('test/setup-alias-name-uniqueness.test.ts')).toBe('creates symlink fixtures (requires Developer Mode on Windows)');
+    expect(excluded.get('test/migration-checkpoint-ownership.test.ts')).toBe('creates symlink fixtures (requires Developer Mode on Windows)');
+    expect(excluded.get('make-pdf/test/diagram-prepass.test.ts')).toBe('creates symlink fixtures (requires Developer Mode on Windows)');
+    expect(excluded.get('test/hermetic-skills-seeding.test.ts')).toContain('hermeticSkillsConfigDir()');
+    expect(excluded.get('test/hermetic-wiring.test.ts')).toContain('hermeticSkillsConfigDir()');
   });
 });
 
