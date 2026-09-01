@@ -1,0 +1,53 @@
+{
+  "manifest_version": "1.0.0",
+  "blueprint": {
+    "repository": "WilsonMisor/wed_dev_skill",
+    "version": "unversioned-commit-pinned",
+    "version_source": "No root VERSION, package.json, pyproject.toml, setup.cfg, or setup.py was present during migration; compatibility is bound to commit.",
+    "commit": "86493391fe595005af51128a4b453d670080cf2b",
+    "branch": "codex/ideas-package-blueprint-1.4.0"
+  },
+  "preos": {
+    "repository": "WilsonMisor/PREOS",
+    "version": "1.1.0",
+    "version_source": "VERSION",
+    "commit": "8c774b05132b1a7fd8848a389ea7584c81a59ed6",
+    "branch": "codex/ideas-package-preos-1.4.0",
+    "risk_corpus_version": "2.0.0",
+    "risk_corpus_status": "migration contract installed; default activation remains blocked pending PREOS_MODEL2_CROSSWALK_APPROVAL",
+    "gate_model": "G0-G11-super-gates+R0-R17-readiness-sub-gates"
+  },
+  "gstack": {
+    "repository": "WilsonMisor/gstack",
+    "version": "1.68.4.0",
+    "version_source": "VERSION",
+    "package_json_version": "1.68.4",
+    "commit": "c0615e583d15bdd3cb09e6a472f04246e83f22fb",
+    "branch": "codex/ideas-package-gstack-1.4.0",
+    "context_budget_policy": "required",
+    "context_budget_policy_path": "config/context-budget-policy.json"
+  },
+  "virtual_team": {
+    "registry_version": "1.0.0",
+    "router_version": "1.0.0",
+    "handoff_schema": "schemas/virtual-team-handoff.schema.json",
+    "role_count": 40,
+    "team_agent_count": 9
+  },
+  "codex": {
+    "skill_discovery": "user-level .agents/skills or repository .agents/skills",
+    "custom_agent_discovery": "user-level .codex/agents or project .codex/agents",
+    "distribution_status": "not installed; Phase 10 blocked until required Phase 9 approvals are recorded"
+  },
+  "compatibility_status": "VERIFIED",
+  "compatibility_evidence": [
+    "python scripts/validate-three-repo-acceptance.py --blueprint C:/AI-MIGRATION/wed_dev_skill --preos C:/AI-MIGRATION/PREOS --gstack C:/AI-MIGRATION/gstack",
+    "python scripts/validate-virtual-team-acceptance.py --blueprint C:/AI-MIGRATION/wed_dev_skill --preos C:/AI-MIGRATION/PREOS --gstack C:/AI-MIGRATION/gstack"
+  ],
+  "approval_status": "BLOCKED_PENDING_HUMAN_AUTHORITY",
+  "open_human_gates": [
+    "PREOS_MODEL2_CROSSWALK_APPROVAL",
+    "remote publication, merge, release, and Phase 10 installation approval"
+  ],
+  "fail_closed": true
+}
