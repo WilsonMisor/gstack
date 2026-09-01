@@ -1,0 +1,14 @@
+{
+  "$schema": "https://gstack.dev/schemas/section-manifest.json",
+  "skill": "autoplan",
+  "version": 1,
+  "note": "PASSIVE registry. The skeleton decides when to read; this manifest only names the on-demand review pipeline section.",
+  "sections": [
+    {
+      "id": "review-phases",
+      "file": "review-phases.md",
+      "title": "Decision principles, phase execution, audit trail, final approval gate and review logs",
+      "trigger": "running the auto-review pipeline phases, final approval gate, and review-log writeback"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+name: Skill context budget
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: context-budget-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  skill-context-budget:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Check skill context budgets
+        run: python scripts/check_skill_context_budget.py . --policy config/context-budget-policy.json
