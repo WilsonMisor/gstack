@@ -7,6 +7,7 @@ const codex = defineHost({
   defaultModel: 'gpt',
 
   localSkillRoot: '.agents/skills/gstack',
+  globalRoot: '.agents/skills/gstack',
   hostSubdir: '.agents',
 
   frontmatter: {

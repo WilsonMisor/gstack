@@ -37,6 +37,8 @@ jobs:
             echo "Generated SKILL.md files are stale. Run: bun run gen:skill-docs --host all"
             exit 1
           }
+      - name: Validate source-based Codex distribution materialization
+        run: python scripts/build_codex_distribution.py --check
       # git diff misses NEW untracked files (e.g. a freshly added skill whose
       # generated SKILL.md was never committed). Fail on any untracked stray
       # the generator produced outside the gitignored host dirs.

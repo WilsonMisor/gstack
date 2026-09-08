@@ -38,7 +38,6 @@ bin/*        text eol=lf
 *.gif        binary
 *.ico        binary
 *.pdf        binary
-
 # The committed diagram-render bundle is hash-pinned (BUILD_INFO sha256);
 # a CRLF rewrite on Windows checkout would break the drift test and change
 # the content-addressed staged filename.
