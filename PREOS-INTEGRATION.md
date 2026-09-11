@@ -171,3 +171,8 @@ Blueprint change control
 ```
 
 Execution commands occur after the required authority gate; they are not the authority gate.
+
+## Production Assurance Suite v2 Source 4 Routing
+
+PAS v2 Source 4 conceptual production specialists are compatibility labels, not new gstack commands and not release authority. Use integration/PASV2-SOURCE4-ROUTING.json to map /prod-* concepts to existing namespaced gstack specialists. PREOS G0-G11, Source 2 R0-R17 readiness mapping, and qualified human approval remain authoritative; gstack output is evidence only and cannot activate PREOS model2 or approve production.
+
