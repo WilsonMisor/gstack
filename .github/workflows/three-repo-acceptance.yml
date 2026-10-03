@@ -5,6 +5,7 @@ on:
     branches:
       - "upgrade/blueprint-preos-handoffs"
       - "fix/master-plan-wordpress-e2e"
+      - "pasv2/final-residual-remediation"
   pull_request:
     branches:
       - "main"
@@ -18,8 +19,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  BLUEPRINT_CANDIDATE_SHA: 0f81fb370f3adca2e82fddd61b54f495a1ec23e3
-  PREOS_CANDIDATE_SHA: 166bb377a50f9f9232383859e808f7b79ea875a3
+  PASV2_COMPATIBILITY_MANIFEST: gstack/integration/PASV2-COMPATIBILITY.json
 
 jobs:
   acceptance:
@@ -32,27 +32,46 @@ jobs:
           path: gstack
           fetch-depth: 0
 
-      - name: Check out exact Blueprint candidate
+      - name: Load PAS v2 compatibility manifest
+        run: |
+          python3 - <<'PY' >> "$GITHUB_ENV"
+          import json
+          manifest = json.load(open('gstack/integration/PASV2-COMPATIBILITY.json', encoding='utf-8'))
+          blueprint = manifest['components']['blueprint']
+          preos = manifest['components']['preos']
+          print(f"BLUEPRINT_REPOSITORY={blueprint['repository']}")
+          print(f"BLUEPRINT_REF={blueprint['ref']}")
+          print(f"PREOS_REPOSITORY={preos['repository']}")
+          print(f"PREOS_REF={preos['ref']}")
+          print(f"PASV2_COMPATIBILITY_ID={manifest['compatibility_id']}")
+          PY
+
+      - name: Check out compatible Blueprint candidate
         uses: actions/checkout@v7
         with:
-          repository: WilsonMisor/wed_dev_skill
-          ref: ${{ env.BLUEPRINT_CANDIDATE_SHA }}
+          repository: ${{ env.BLUEPRINT_REPOSITORY }}
+          ref: ${{ env.BLUEPRINT_REF }}
           path: blueprint
           fetch-depth: 0
 
-      - name: Check out exact PREOS candidate
+      - name: Check out compatible PREOS candidate
         uses: actions/checkout@v7
         with:
-          repository: WilsonMisor/PREOS
-          ref: ${{ env.PREOS_CANDIDATE_SHA }}
+          repository: ${{ env.PREOS_REPOSITORY }}
+          ref: ${{ env.PREOS_REF }}
           path: preos
           fetch-depth: 0
 
-      - name: Verify exact candidate identities
+      - name: Verify compatibility manifest bindings
         run: |
-          test "$(git -C blueprint rev-parse HEAD)" = "$BLUEPRINT_CANDIDATE_SHA"
-          test "$(git -C preos rev-parse HEAD)" = "$PREOS_CANDIDATE_SHA"
+          test -n "$PASV2_COMPATIBILITY_ID"
+          git -C blueprint rev-parse --verify HEAD
+          git -C preos rev-parse --verify HEAD
           test "$(git -C gstack rev-parse HEAD)" = "${{ github.sha }}"
+          python3 gstack/scripts/validate-pasv2-compatibility.py \
+            --blueprint blueprint \
+            --preos preos \
+            --gstack gstack
 
       - name: Validate Blueprint candidate
         working-directory: blueprint
@@ -60,11 +79,13 @@ jobs:
           python3 scripts/validate_blueprint.py
           python3 -m unittest discover -s tests -p 'test_*.py'
           python3 scripts/validate_source_semantics.py
+          python3 scripts/build_codex_distribution.py --check
 
       - name: Validate PREOS candidate including WordPress and recovery contracts
         working-directory: preos
         run: |
           python3 scripts/validate-preos.py
+          python3 scripts/validate-pasv2-remediation-artifacts.py
           python3 -m unittest discover -s tests -p 'test_*.py'
 
       - name: Validate gstack governed integration contract

@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import json
+import subprocess
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -193,3 +195,6 @@ if 'https://github.com/garrytan/gstack.git' in readme:
     print('FAIL: operational install docs still point at garrytan/gstack.git')
     raise SystemExit(1)
 print('PASS: gstack PAS v2 Source 4 routing crosswalk present')
+compat = subprocess.run([sys.executable, str(ROOT / 'scripts' / 'validate-pasv2-compatibility.py')], cwd=ROOT)
+if compat.returncode:
+    raise SystemExit(compat.returncode)

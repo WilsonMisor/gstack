@@ -21,6 +21,7 @@ import json
 import os
 from pathlib import Path
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -59,6 +60,18 @@ def run(cmd: list[str], *, cwd: Path, env: dict[str, str] | None = None,
     return proc
 
 
+def resolve_php() -> str:
+    candidates = []
+    if os.environ.get("PHP_BIN"):
+        candidates.append(os.environ["PHP_BIN"])
+    found = shutil.which("php")
+    if found:
+        candidates.append(found)
+    candidates.append(r"C:\xampp\php\php.exe")
+    for candidate in candidates:
+        if candidate and Path(candidate).is_file():
+            return str(Path(candidate))
+    fail("PHP CLI is required for executable WordPress acceptance; set PHP_BIN or install PHP on PATH")
 def git(repo: Path, *args: str) -> str:
     return run(["git", *args], cwd=repo).stdout.strip()
 
@@ -516,7 +529,8 @@ def wordpress_e2e(blueprint: Path, preos: Path, gstack: Path) -> None:
         preos_scripts / "record-approval.py",
     ]:
         require(required.is_file(), f"required executable contract missing: {required}")
-    php_version = run(["php", "--version"], cwd=gstack)
+    php_bin = resolve_php()
+    php_version = run([php_bin, "--version"], cwd=gstack)
     require("PHP" in php_version.stdout, "PHP CLI is required for executable WordPress acceptance")
 
     with tempfile.TemporaryDirectory(prefix="three-repo-wordpress-e2e-") as td:
@@ -584,6 +598,7 @@ def wordpress_e2e(blueprint: Path, preos: Path, gstack: Path) -> None:
         git(app, "commit", "-m", "governed Blueprint-derived WordPress baseline")
 
         env = os.environ.copy()
+        env["PHP_BIN"] = php_bin
         env["PREOS_STATE_ROOT"] = str(base / "preos-state")
         env["WP_ENVIRONMENT_TYPE"] = "test"
         run([sys.executable, str(preos_scripts / "init-project-state.py"),
@@ -618,8 +633,8 @@ def wordpress_e2e(blueprint: Path, preos: Path, gstack: Path) -> None:
         require("PASS classic WordPress theme + custom plugin contract" in wp_test.stdout,
                 "disposable WordPress structural contract did not pass")
         for php in sorted(app.rglob("*.php")):
-            run(["php", "-l", str(php)], cwd=app)
-        php_runtime = run(["php", str(paths["runtime_test"])], cwd=app)
+            run([php_bin, "-l", str(php)], cwd=app)
+        php_runtime = run([php_bin, str(paths["runtime_test"])], cwd=app)
         require("PASS WordPress PHP runtime contract" in php_runtime.stdout,
                 "actual PHP theme/plugin runtime contract did not pass")
         print("PASS: actual PHP syntax and WordPress-API-stub runtime behavior verified")
