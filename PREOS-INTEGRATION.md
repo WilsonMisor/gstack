@@ -176,3 +176,13 @@ Execution commands occur after the required authority gate; they are not the aut
 
 PAS v2 Source 4 conceptual production specialists are compatibility labels, not new gstack commands and not release authority. Use integration/PASV2-SOURCE4-ROUTING.json to map /prod-* concepts to existing namespaced gstack specialists. PREOS G0-G11, Source 2 R0-R17 readiness mapping, and qualified human approval remain authoritative; gstack output is evidence only and cannot activate PREOS model2 or approve production.
 
+# Deterministic PAS specialist dispatch
+
+`python scripts/pasv2_specialist_routes.py <project-contract.json>` evaluates
+`integration/pasv2-specialist-routes.json` against declared project facts and
+resolves requests through `CODEX-DISTRIBUTION.json`. Missing skills fail closed.
+Each request records the exact entry point, its hash and required findings.
+The result is explicitly `ROUTED_NOT_EXECUTED`: it does not claim that an AI
+specialist has run or that production is approved. Documentation-only routing
+loads no specialist metadata.
+

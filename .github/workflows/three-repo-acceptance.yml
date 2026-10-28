@@ -51,7 +51,7 @@ jobs:
         with:
           repository: ${{ env.BLUEPRINT_REPOSITORY }}
           ref: ${{ env.BLUEPRINT_REF }}
-          path: blueprint
+          path: wed_dev_skill
           fetch-depth: 0
 
       - name: Check out compatible PREOS candidate
@@ -59,22 +59,22 @@ jobs:
         with:
           repository: ${{ env.PREOS_REPOSITORY }}
           ref: ${{ env.PREOS_REF }}
-          path: preos
+          path: PREOS
           fetch-depth: 0
 
       - name: Verify compatibility manifest bindings
         run: |
           test -n "$PASV2_COMPATIBILITY_ID"
-          git -C blueprint rev-parse --verify HEAD
-          git -C preos rev-parse --verify HEAD
+          git -C wed_dev_skill rev-parse --verify HEAD
+          git -C PREOS rev-parse --verify HEAD
           test "$(git -C gstack rev-parse HEAD)" = "${{ github.sha }}"
           python3 gstack/scripts/validate-pasv2-compatibility.py \
-            --blueprint blueprint \
-            --preos preos \
+            --blueprint wed_dev_skill \
+            --preos PREOS \
             --gstack gstack
 
       - name: Validate Blueprint candidate
-        working-directory: blueprint
+        working-directory: wed_dev_skill
         run: |
           python3 scripts/validate_blueprint.py
           python3 -m unittest discover -s tests -p 'test_*.py'
@@ -82,7 +82,7 @@ jobs:
           python3 scripts/build_codex_distribution.py --check
 
       - name: Validate PREOS candidate including WordPress and recovery contracts
-        working-directory: preos
+        working-directory: PREOS
         run: |
           python3 scripts/validate-preos.py
           python3 scripts/validate-pasv2-remediation-artifacts.py
@@ -99,15 +99,22 @@ jobs:
       - name: Run cross repository invariants and disposable non WordPress E2E
         run: |
           python3 gstack/scripts/validate-three-repo-acceptance.py \
-            --blueprint blueprint \
-            --preos preos \
+            --blueprint wed_dev_skill \
+            --preos PREOS \
             --gstack gstack
+
+      - name: Execute PAS protocol and specialist routing tests
+        run: |
+          python3 -m unittest discover -s gstack/tests -p 'test_pasv2_*.py'
+          python3 wed_dev_skill/scripts/evaluate_pasv2_invocations.py --validate
+          python3 wed_dev_skill/scripts/pasv2_acceptance.py --preos PREOS --gstack gstack
+          python3 PREOS/scripts/assurance_benchmark.py
 
       - name: Run virtual team organizational acceptance audit
         run: |
           python3 gstack/scripts/validate-virtual-team-acceptance.py \
-            --blueprint blueprint \
-            --preos preos \
+            --blueprint wed_dev_skill \
+            --preos PREOS \
             --gstack gstack
 
       # Secretless repository-controlled acceptance only: this fixture does not
@@ -116,6 +123,6 @@ jobs:
       - name: Run disposable WordPress three repository E2E
         run: |
           python3 gstack/scripts/validate-three-repo-wordpress-e2e.py \
-            --blueprint blueprint \
-            --preos preos \
+            --blueprint wed_dev_skill \
+            --preos PREOS \
             --gstack gstack
