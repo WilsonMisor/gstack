@@ -34,7 +34,7 @@
   "compatibility": {
     "python": ">=3.11",
     "bun": ">=1.0.0",
-    "codex_skill_root": "$HOME/.agents/skills",
+    "codex_skill_root": "CODEX_SKILL_ROOT, CODEX_SKILLS_HOME, or CODEX_HOME/skills (default $HOME/.codex/skills)",
     "codex_agent_root": "$HOME/.codex/agents"
   },
   "receipt_policy": {

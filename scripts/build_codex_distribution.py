@@ -320,6 +320,21 @@ def write_provenance(target: Path, data: dict) -> None:
     (target / PROVENANCE).write_text(text, encoding="utf-8")
     (target / "skills" / "gstack" / PROVENANCE).write_text(text, encoding="utf-8")
 
+CODEX_RUNTIME_ROOT = '${CODEX_SKILL_ROOT:-${CODEX_SKILLS_HOME:-${CODEX_HOME:-$HOME/.codex}/skills}}/gstack'
+LEGACY_ROOT_ASSIGNMENT = 'GSTACK_ROOT="$HOME/.agents/skills/gstack"'
+
+def bind_codex_runtime_root(target: Path) -> None:
+    """Bind suite distributions to the same root used by their installers.
+
+    Upstream host templates remain unchanged. Project-local overrides remain
+    intact; only the installed global default is transformed.
+    """
+    for path in target.rglob('*.md'):
+        text = path.read_text(encoding='utf-8')
+        updated = text.replace(LEGACY_ROOT_ASSIGNMENT, 'GSTACK_ROOT="' + CODEX_RUNTIME_ROOT + '"')
+        if updated != text:
+            path.write_text(updated, encoding='utf-8', newline='\n')
+
 def validate_distribution(target: Path, data: dict) -> None:
     seen: set[str] = set()
     for item in data["skills"]:
@@ -334,6 +349,9 @@ def validate_distribution(target: Path, data: dict) -> None:
         actual = frontmatter_name(path / "SKILL.md")
         if actual != name:
             raise DistributionError(f"skill name mismatch for {item['source_path']}: manifest={name}, SKILL.md={actual}")
+    for path in target.rglob('*.md'):
+        if LEGACY_ROOT_ASSIGNMENT in path.read_text(encoding='utf-8'):
+            raise DistributionError('Codex skill runtime root differs from suite installation root: ' + str(path))
     require_runtime(target / "skills" / "gstack")
 
 def validate_provenance(target: Path) -> dict:
@@ -373,6 +391,7 @@ def build_tree(target: Path, *, build_runtime: bool = True) -> dict:
         if source_dir is None:
             raise DistributionError(f"sidecar skill reference is not generated: {name}")
         copy_item(source_dir / "SKILL.md", sidecar / name / "SKILL.md")
+    bind_codex_runtime_root(target)
     data = manifest_from_sources(source_by_name)
     validate_distribution(target, data)
     write_provenance(target, data)
