@@ -10,6 +10,25 @@ compatibility=importlib.util.module_from_spec(spec);spec.loader.exec_module(comp
 
 
 class CompatibilityContractTests(unittest.TestCase):
+    def test_integrated_main_requires_compatible_ancestry(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            repo=Path(temporary)
+            def git(*args):
+                return subprocess.run(['git','-C',str(repo),*args],check=True,capture_output=True,text=True).stdout.strip()
+            git('init','-b','main');git('config','user.email','fixture@example.invalid');git('config','user.name','Fixture')
+            (repo/'content').write_text('base');git('add','.');git('commit','-m','base')
+            expected='pasv2/final-residual-remediation'
+            with self.assertRaises(SystemExit):compatibility.validate_checkout_ref(repo,expected,'blueprint')
+            git('checkout','-b',expected)
+            (repo/'content').write_text('candidate');git('add','.');git('commit','-m','candidate')
+            compatibility.validate_checkout_ref(repo,expected,'blueprint')
+            git('checkout','main')
+            with self.assertRaises(SystemExit):compatibility.validate_checkout_ref(repo,expected,'blueprint')
+            git('merge','--no-ff',expected,'-m','integrated fixture')
+            compatibility.validate_checkout_ref(repo,expected,'blueprint')
+            git('checkout','-b','unapproved-label')
+            with self.assertRaises(SystemExit):compatibility.validate_checkout_ref(repo,expected,'blueprint')
+
     def test_all_actual_checkouts_share_version_and_resolvable_interfaces(self):
         manifest=compatibility.validate_static()
         results=compatibility.validate_local_checkouts(manifest,ROOT.parent/'wed_dev_skill',ROOT.parent/'PREOS',ROOT)

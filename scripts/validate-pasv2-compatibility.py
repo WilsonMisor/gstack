@@ -107,6 +107,24 @@ def validate_repo(repo: Path, validators: list[str], label: str) -> dict:
     return {'component':label,'compatibility_version':CONTRACT_VERSION,'head':git(repo,'rev-parse','HEAD'),'tree':git(repo,'rev-parse','HEAD^{tree}'),'interfaces':contract['interfaces']}
 
 
+def validate_checkout_ref(repo: Path, expected: str, label: str) -> None:
+    branch = git(repo, "branch", "--show-current")
+    if not branch or branch == expected:
+        return
+    if branch != 'main':
+        fail(f"{label} checkout branch drift: expected {expected} or integrated main, got {branch}")
+    # A protected merge commit retains the audited branch's ancestry. Merely
+    # naming a checkout main must not bypass the compatibility binding.
+    for ref in ('refs/remotes/origin/' + expected, 'refs/heads/' + expected):
+        exists = subprocess.run(['git', '-C', str(repo), 'rev-parse', '--verify', ref], capture_output=True)
+        if exists.returncode == 0:
+            ancestor = subprocess.run(['git', '-C', str(repo), 'merge-base', '--is-ancestor', ref, 'HEAD'], capture_output=True)
+            if ancestor.returncode:
+                fail(f'{label} main does not contain compatible reference {ref}')
+            return
+    fail(f'{label} integrated main requires a fetched compatible reference: {expected}')
+
+
 def validate_local_checkouts(manifest: dict, blueprint: Path | None, preos: Path | None, gstack: Path | None, *, execute=False) -> list:
     repos = {"blueprint": blueprint, "preos": preos, "gstack": gstack}
     observed=[]
@@ -116,10 +134,7 @@ def validate_local_checkouts(manifest: dict, blueprint: Path | None, preos: Path
         item = manifest["components"][key]
         observed.append(validate_repo(repo.resolve(), list(item["required_validators"]), key))
         if key in {"blueprint", "preos"}:
-            branch = git(repo.resolve(), "branch", "--show-current")
-            expected = item.get("ref")
-            if branch and branch != expected:
-                fail(f"{key} checkout branch drift: expected {expected}, got {branch}")
+            validate_checkout_ref(repo.resolve(), item['ref'], key)
         if execute:
             for validator in item['required_validators']:
                 if validator.startswith('scripts/validate-pasv2-compatibility.py'):

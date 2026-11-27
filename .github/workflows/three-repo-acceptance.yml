@@ -73,6 +73,19 @@ jobs:
             --preos PREOS \
             --gstack gstack
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.13
+      - name: Install PREOS test oracle and materialize specialist distribution
+        run: |
+          python3 -m pip install -r PREOS/requirements-test.txt
+          cd gstack
+          bun install --frozen-lockfile
+          python3 scripts/build_codex_distribution.py
+
       - name: Validate Blueprint candidate
         working-directory: wed_dev_skill
         run: |
