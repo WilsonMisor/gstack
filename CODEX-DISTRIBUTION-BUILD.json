@@ -1,0 +1,54 @@
+{
+  "schema_version": "1.0",
+  "repository": "WilsonMisor/gstack",
+  "component": "gstack-codex-skills",
+  "distribution_manifest": "CODEX-DISTRIBUTION.json",
+  "output_root": "codex-distribution",
+  "materializer": {
+    "path": "scripts/build_codex_distribution.py",
+    "version": "source-runtime-materializer-v1",
+    "procedure": "python scripts/build_codex_distribution.py",
+    "check_procedure": "python scripts/build_codex_distribution.py --check",
+    "validate_current_procedure": "python scripts/build_codex_distribution.py --validate-current"
+  },
+  "version_control_policy": {
+    "generated_output_root": "codex-distribution",
+    "generated_output_root_committed": false,
+    "generated_runtime_binaries_committed": false,
+    "requires_new_git_lfs_objects": false,
+    "canonical_source_repository": "WilsonMisor/gstack",
+    "canonical_source_commit_binding": "git rev-parse HEAD at materialization time"
+  },
+  "runtime_artifacts": [
+    "bin/gstack-global-discover(.exe)",
+    "browse/dist/browse(.exe) from scrubbed path-stable intermediate bundle",
+    "browse/dist/find-browse(.exe)",
+    "design/dist/design(.exe)",
+    "make-pdf/dist/pdf(.exe)",
+    "browse/dist/server-node.mjs",
+    "browse/dist/bun-polyfill.cjs",
+    "browse/dist/.version",
+    "design/dist/.version",
+    "make-pdf/dist/.version"
+  ],
+  "compatibility": {
+    "python": ">=3.11",
+    "bun": ">=1.0.0",
+    "codex_skill_root": "CODEX_SKILL_ROOT, CODEX_SKILLS_HOME, or CODEX_HOME/skills (default $HOME/.codex/skills)",
+    "codex_agent_root": "$HOME/.codex/agents"
+  },
+  "receipt_policy": {
+    "receipt": "$HOME/.codex/framework-installations/wilson-production-framework.json",
+    "required_materialization_fields": [
+      "repository",
+      "source_commit",
+      "distribution_build_procedure",
+      "build_contract",
+      "runtime_artifacts",
+      "installed_runtime_artifacts",
+      "installation_destination",
+      "compatibility"
+    ],
+    "augment_command": "python scripts/build_codex_distribution.py --augment-receipt $HOME/.codex/framework-installations/wilson-production-framework.json"
+  }
+}

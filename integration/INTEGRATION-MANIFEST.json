@@ -1,0 +1,79 @@
+{
+    "approval_status":  "PHASE_10_APPROVED_INSTALLED_AND_PUBLISHED",
+    "blocker_status":  {
+                           "BLOCKED_GSTACK_LFS_PUBLIC_FORK_UPLOAD":  "resolved by source-materialized distribution after remote publication verification",
+                           "BLOCKED_REQUIRED_PACKAGE_ARTIFACT_UNREADABLE":  "resolved"
+                       },
+    "blueprint":  {
+                      "branch":  "pasv2/final-residual-remediation",
+                      "commit":  "CURRENT_REF_DERIVED_FROM_integration/PASV2-COMPATIBILITY.json",
+                      "phase10_publication_status":  "published",
+                      "repository":  "WilsonMisor/wed_dev_skill",
+                      "version":  "pasv2-current-compatible-ref",
+                      "version_source":  "integration/PASV2-COMPATIBILITY.json"
+                  },
+    "codex":  {
+                  "custom_agent_discovery":  "user-level .codex/agents or project .codex/agents",
+                  "distribution_status":  "installed and structurally verified by Phase 10 installer",
+                  "gstack_runtime_artifact_count":  10,
+                  "gstack_runtime_materialization":  "generated locally from exact source commit; no new Git LFS object publication required",
+                  "installation_receipt":  "C:/Users/USER/.codex/framework-installations/wilson-production-framework.json",
+                  "installed_custom_agent_count":  9,
+                  "installed_skill_count":  63,
+                  "runtime_restart_required":  true,
+                  "skill_discovery":  "user-level .agents/skills or repository .agents/skills"
+              },
+    "compatibility_evidence":  [
+                                   "python scripts/validate-pasv2-compatibility.py --blueprint C:/AI-MIGRATION/wed_dev_skill --preos C:/AI-MIGRATION/PREOS --gstack C:/AI-MIGRATION/gstack",
+                                   "python scripts/validate-three-repo-acceptance.py --blueprint C:/AI-MIGRATION/wed_dev_skill --preos C:/AI-MIGRATION/PREOS --gstack C:/AI-MIGRATION/gstack",
+                                   "python scripts/validate-virtual-team-acceptance.py --blueprint C:/AI-MIGRATION/wed_dev_skill --preos C:/AI-MIGRATION/PREOS --gstack C:/AI-MIGRATION/gstack",
+                                   "python scripts/build_codex_distribution.py --check",
+                                   "python scripts/build_codex_distribution.py --validate-current"
+                               ],
+    "compatibility_status":  "VERIFIED",
+    "fail_closed":  false,
+    "gstack":  {
+                   "branch":  "codex/ideas-package-gstack-1.4.0",
+                   "codex_distribution_build_manifest":  "CODEX-DISTRIBUTION-BUILD.json",
+                   "codex_distribution_manifest":  "CODEX-DISTRIBUTION.json",
+                   "codex_distribution_model":  "source-materialized",
+                   "commit":  "833b96a07cb6596c46dca72080ec881267592e8e",
+                   "commit_binding_note":  "The commit field pins the validated source-distribution commit. Later manifest-only reconciliation commits are recorded in migration-state and evidence to avoid a self-referential Git hash loop.",
+                   "context_budget_policy":  "required",
+                   "context_budget_policy_path":  "config/context-budget-policy.json",
+                   "package_json_version":  "1.68.4",
+                   "phase10_publication_status":  "published",
+                   "repository":  "WilsonMisor/gstack",
+                   "validated_source_distribution_commit":  "833b96a07cb6596c46dca72080ec881267592e8e",
+                   "version":  "1.68.4.0",
+                   "version_source":  "VERSION"
+               },
+    "manifest_version":  "1.0.0",
+    "open_human_gates":  [
+                             "PREOS_MODEL2_CROSSWALK_APPROVAL"
+                         ],
+    "preos":  {
+                  "branch":  "pasv2/final-residual-remediation",
+                  "commit":  "CURRENT_REF_DERIVED_FROM_integration/PASV2-COMPATIBILITY.json",
+                  "gate_model":  "G0-G11-super-gates+R0-R17-readiness-sub-gates",
+                  "phase10_publication_status":  "published",
+                  "repository":  "WilsonMisor/PREOS",
+                  "risk_corpus_status":  "migration contract installed; default activation remains blocked pending PREOS_MODEL2_CROSSWALK_APPROVAL",
+                  "risk_corpus_version":  "2.0.0",
+                  "version":  "pasv2-current-compatible-ref",
+                  "version_source":  "integration/PASV2-COMPATIBILITY.json"
+              },
+    "production_assurance_suite_v2":  {
+                                          "authority_boundary":  "gstack evidence cannot approve PREOS G0-G11 or production release",
+                                          "model2_activation":  "blocked_pending_PREOS_MODEL2_CROSSWALK_APPROVAL",
+                                          "source4_routing_crosswalk":  "integration/PASV2-SOURCE4-ROUTING.json"
+                                      },
+    "virtual_team":  {
+                         "handoff_schema":  "schemas/virtual-team-handoff.schema.json",
+                         "registry_version":  "1.0.0",
+                         "role_count":  40,
+                         "router_version":  "1.0.0",
+                         "team_agent_count":  9
+                     },
+    "current_compatibility_manifest":  "integration/PASV2-COMPATIBILITY.json"
+}

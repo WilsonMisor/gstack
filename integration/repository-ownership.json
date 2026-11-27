@@ -1,0 +1,49 @@
+{
+  "version": "1.0.0",
+  "repositories": {
+    "WilsonMisor/wed_dev_skill": {
+      "authority": "governing software delivery lifecycle, project classification, delivery profiles, source authority, task packets, virtual team routing and project governance",
+      "receives": [
+        "virtual-team role registry and router",
+        "handoff schema",
+        "readiness profile routing",
+        "missing product profile seeds",
+        "anti-hallucination bootstrap rules"
+      ]
+    },
+    "WilsonMisor/PREOS": {
+      "authority": "production assurance, risk selection, evidence, economics, recovery, production gates and learning",
+      "receives": [
+        "risk corpus v2",
+        "R0-R17 readiness sub-gate crosswalk",
+        "risk selectors",
+        "migration and preservation controls"
+      ]
+    },
+    "WilsonMisor/gstack": {
+      "authority": "specialist engineering review, investigation, QA, benchmark, shipping, deployment, canary, documentation and retrospective support",
+      "receives": [
+        "progressive-disclosure refactor requirements",
+        "context-budget policy",
+        "specialist routing contracts"
+      ]
+    },
+    "application repository": {
+      "authority": "project-specific execution surface and authoritative project artifacts/state",
+      "receives": [
+        "thin AGENTS.md",
+        "project classification",
+        "task packets",
+        "evidence links",
+        "PREOS project state references",
+        "project-scoped Codex agents only when needed"
+      ]
+    }
+  },
+  "prohibitions": [
+    "Do not merge or vendor the three framework repositories merely to cooperate.",
+    "Do not make conversation memory authoritative project state.",
+    "Do not duplicate PREOS risk corpora inside wed_dev_skill or gstack.",
+    "Do not allow gstack shipping or successful tests to self-authorize production."
+  ]
+}

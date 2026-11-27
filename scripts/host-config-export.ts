@@ -20,12 +20,8 @@
 import { ALL_HOST_CONFIGS, getHostConfig, ALL_HOST_NAMES } from '../hosts/index';
 import { validateAllConfigs } from './host-config';
 import { RESOLVERS } from './resolvers';
-import { execSync } from 'child_process';
 
 
-function shellEscape(s: string): string {
-  return "'" + s.replace(/'/g, "'\\''") + "'";
-}
 
 const [command, ...args] = process.argv.slice(2);
 
@@ -65,14 +61,8 @@ switch (command) {
   case 'detect': {
     for (const config of ALL_HOST_CONFIGS) {
       const commands = [config.cliCommand, ...(config.cliAliases || [])];
-      for (const cmd of commands) {
-        try {
-          execSync(`command -v ${shellEscape(cmd)}`, { stdio: 'pipe' });
-          console.log(config.name);
-          break;  // Found this host, move to next
-        } catch {
-          // Binary not found, try next alias
-        }
+      if (commands.some((cmd) => Boolean(Bun.which(cmd)))) {
+        console.log(config.name);
       }
     }
     break;

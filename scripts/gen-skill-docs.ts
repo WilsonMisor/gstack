@@ -22,6 +22,10 @@ import type { HostConfig } from './host-config';
 const ROOT = path.resolve(import.meta.dir, '..');
 const DRY_RUN = process.argv.includes('--dry-run');
 
+function displayPath(value: string): string {
+  return value.split(path.sep).join('/');
+}
+
 // ─── GBrain Detection Override ──────────────────────────────
 // When --respect-detection is passed, read ~/.gstack/gbrain-detection.json
 // and un-suppress GBRAIN_CONTEXT_LOAD + GBRAIN_SAVE_RESULTS for hosts that
@@ -986,7 +990,7 @@ for (const currentHost of hostsToRun) {
       }
 
       const { outputPath, content, symlinkLoop } = processTemplate(tmplPath, currentHost);
-      const relOutput = path.relative(OUT_DIR || ROOT, outputPath);
+      const relOutput = displayPath(path.relative(OUT_DIR || ROOT, outputPath));
 
       if (symlinkLoop) {
         console.log(`SKIPPED (symlink loop): ${relOutput}`);
@@ -1038,7 +1042,7 @@ for (const currentHost of hostsToRun) {
           currentHostConfig.generation.skipSkills.includes(sec.skillDir)) continue;
 
       const { outputPath, content } = processSectionTemplate(path.join(ROOT, sec.tmpl), sec.skillDir, currentHost);
-      const relOutput = path.relative(OUT_DIR || ROOT, outputPath);
+      const relOutput = displayPath(path.relative(OUT_DIR || ROOT, outputPath));
 
       if (DRY_RUN) {
         const existing = fs.existsSync(outputPath) ? fs.readFileSync(outputPath, 'utf-8') : '';

@@ -1,9 +1,11 @@
 name: Validate PREOS integration
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - "main"
+      - "pasv2/final-residual-remediation"
       - "integration/preos-production-assurance"
       - "upgrade/blueprint-preos-handoffs"
   pull_request:

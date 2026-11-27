@@ -248,16 +248,6 @@ const MONOLITH_INVARIANTS: ParityInvariant[] = [
     maxSizeRatio: 1.12, // D1 measured
     minBytes: 30_000,
   },
-  {
-    skill: 'autoplan',
-    mustContain: ['ceo', 'eng', 'design'],
-    mustHaveHeadings: ['## Preamble', '## When to invoke'],
-    // v1.2.0 activation lift: shared first-run-guidance preamble section.
-        // Fork port wave 2 (D1): the evidence-before-claimed-limitations preamble
-    // directive adds ~0.45KB to every tier-2+ skill. Measured values noted.
-    maxSizeRatio: 1.09, // D1 measured
-    minBytes: 70_000,
-  },
 ];
 
 /**

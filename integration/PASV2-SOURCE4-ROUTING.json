@@ -1,0 +1,17 @@
+{
+  "policy": "Source 4 conceptual prod routes are compatibility labels only; use namespaced gstack skills and do not create a second release gate authority.",
+  "preos_authority": "PREOS G0-G11 and qualified human approval remain authoritative.",
+  "routes": {
+    "/prod-architecture": "gstack-plan-eng-review",
+    "/prod-benchmark": "gstack-benchmark",
+    "/prod-canary": "gstack-canary",
+    "/prod-learn": "gstack-retro plus PREOS production learning",
+    "/prod-plan": "gstack-preos-handoff",
+    "/prod-qa": "gstack-qa-only or gstack-qa",
+    "/prod-release": "gstack-ship then gstack-land-and-deploy only after human approval",
+    "/prod-review": "gstack-review",
+    "/prod-risk": "gstack-cso",
+    "/prod-security": "gstack-cso"
+  },
+  "source_id": "source-4-original-master-prompt"
+}

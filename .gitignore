@@ -1,9 +1,12 @@
 .env
 node_modules/
+__pycache__/
 dist/
 browse/dist/
 design/dist/
 make-pdf/dist/
+# Governed Phase 10 Codex distribution is generated from source at install time.
+codex-distribution/
 # diagram-render ships its built bundle (offline-at-install premise, eng-review D2)
 !lib/diagram-render/dist/
 !lib/diagram-render/dist/**

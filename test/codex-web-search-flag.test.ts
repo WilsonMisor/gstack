@@ -11,7 +11,6 @@
  * (resolver, template, helper) or any rendered SKILL.md / section / golden.
  */
 import { describe, test, expect } from 'bun:test';
-import { execSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import { CODEX_WEB_SEARCH_FLAG } from '../scripts/resolvers/constants';
@@ -20,19 +19,24 @@ const ROOT = path.join(import.meta.dir, '..');
 const DEPRECATED = '--enable web_search_cached';
 
 function grepRepo(pattern: string, includes: string[]): string[] {
-  const includeArgs = includes.map((i) => `--include='${i}'`).join(' ');
-  const out = execSync(
-    `grep -rln ${includeArgs} -e '${pattern}' "${ROOT}" || true`,
-    { encoding: 'utf-8' },
-  );
-  return out
-    .split('\n')
-    .filter(Boolean)
-    .filter((f) => !f.includes('node_modules'))
-    // The workspace-local .claude/ install is not generated output and can
-    // carry dangling symlinks from unrelated sessions.
-    .filter((f) => !f.includes('/.claude/'))
-    .filter((f) => !f.endsWith('test/codex-web-search-flag.test.ts'));
+  // Traverse only repository text, without POSIX shell quoting or following
+  // installation symlinks. Prune dependencies before scanning their contents.
+  const hits: string[] = [];
+  function walk(directory: string) {
+    for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+      const file = path.join(directory, entry.name);
+      if (entry.isSymbolicLink()) continue;
+      if (entry.isDirectory()) {
+        if (!['node_modules', '.git', '.claude'].includes(entry.name)) walk(file);
+      } else if (entry.isFile() && includes.some((glob) =>
+        glob.startsWith('*.') ? entry.name.endsWith(glob.slice(1)) : entry.name === glob)) {
+        if (file === path.join(ROOT, 'test/codex-web-search-flag.test.ts')) continue;
+        if (fs.readFileSync(file, 'utf-8').includes(pattern)) hits.push(file);
+      }
+    }
+  }
+  walk(ROOT);
+  return hits;
 }
 
 describe('deprecated codex web-search flag is gone (#2525)', () => {
@@ -57,7 +61,9 @@ describe('deprecated codex web-search flag is gone (#2525)', () => {
   });
 
   test('rendered autoplan skill resolves the token at every inline site', () => {
-    const rendered = fs.readFileSync(path.join(ROOT, 'autoplan', 'SKILL.md'), 'utf-8');
+    const main = fs.readFileSync(path.join(ROOT, 'autoplan', 'SKILL.md'), 'utf-8');
+    expect(main).toContain('sections/review-phases.md');
+    const rendered = main + fs.readFileSync(path.join(ROOT, 'autoplan', 'sections', 'review-phases.md'), 'utf-8');
     const count = rendered.split(CODEX_WEB_SEARCH_FLAG).length - 1;
     expect(count).toBeGreaterThanOrEqual(4);
     expect(rendered).not.toContain('{{CODEX_WEB_SEARCH_FLAG}}');

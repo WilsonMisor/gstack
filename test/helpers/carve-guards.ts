@@ -304,6 +304,27 @@ export const CARVE_GUARDS: Record<string, CarveGuard> = {
     // cost flat.
     maxSizeRatio: 1.20,
   },
+  autoplan: {
+    skill: 'autoplan',
+    expectedSections: ['review-phases.md'],
+    requiredReads: ['review-phases.md'],
+    scenario:
+      'Run autoplan against PLAN.md for a developer-tool feature plan. Execute the auto-review pipeline through the final approval gate. Do not implement code or run /ship.',
+    staticInvariants: {
+      mustStayInSkeleton: ['## Important Rules', 'Sequential order', 'gstack-preos-handoff'],
+      mustMoveToSection: [
+        '## Phase 1: CEO Review (Strategy & Scope)',
+        '## Phase 4: Final Approval Gate',
+        '## Completion: Write Review Logs',
+      ],
+      gateAfterStop: '## Governed implementation handoff',
+    },
+    behavioral: 'plan',
+    maxSkeletonBytes: 90_000,
+    minUnionBytes: 100_000,
+    mustContain: ['ceo', 'eng', 'design', 'Final Approval Gate', 'Decision Audit Trail'],
+    maxSizeRatio: 1.12,
+  },
   'design-consultation': {
     skill: 'design-consultation',
     expectedSections: ['proposal-and-preview.md'],

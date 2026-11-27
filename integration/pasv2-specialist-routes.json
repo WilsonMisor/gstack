@@ -1,0 +1,10 @@
+{
+  "schema_version": "pasv2-specialist-routes-v1",
+  "authority": "Specialist findings are review evidence; risk acceptance and release remain human decisions.",
+  "routes": [
+    {"skill":"gstack-cso","any_true":["personal_data","money_movement"],"any_equal":{"tenant_model":"multi-tenant"},"required_findings":["tenant isolation","authorization","sensitive data boundaries"]},
+    {"skill":"gstack-review","any_true":["money_movement","payments"],"required_findings":["payment idempotency","financial correctness","reconciliation"]},
+    {"skill":"gstack-qa","any_profiles":["web","api"],"required_findings":["negative paths","cross-tenant access","payment retry outcomes"]},
+    {"skill":"gstack-benchmark","any_architecture":["queue","relational database"],"required_findings":["bounded retries","queue saturation","database contention"]}
+  ]
+}

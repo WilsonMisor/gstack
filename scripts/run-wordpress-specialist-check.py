@@ -13,8 +13,10 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 from pathlib import Path
 import subprocess
+import shutil
 import sys
 import time
 
@@ -54,6 +56,18 @@ def require_skill_contract(gstack: Path, specialist: str) -> tuple[Path, str]:
     return skill, producer
 
 
+def resolve_php() -> str:
+    candidates = []
+    if os.environ.get("PHP_BIN"):
+        candidates.append(os.environ["PHP_BIN"])
+    found = shutil.which("php")
+    if found:
+        candidates.append(found)
+    candidates.append(r"C:\xampp\php\php.exe")
+    for candidate in candidates:
+        if candidate and Path(candidate).is_file():
+            return str(Path(candidate))
+    fail("PHP CLI is required for WordPress specialist checks; set PHP_BIN or install PHP on PATH")
 def php_files(repo: Path) -> list[Path]:
     return sorted(p for p in repo.rglob("*.php") if ".git" not in p.parts)
 
@@ -65,13 +79,13 @@ def lint_php(repo: Path) -> list[dict]:
         fail("no PHP implementation files found")
     for path in files:
         rel = path.relative_to(repo).as_posix()
-        proc = run(["php", "-l", str(path)], repo)
+        proc = run([resolve_php(), "-l", str(path)], repo)
         checks.append({"check": "php-syntax", "target": rel, "status": "PASS", "output": proc.stdout.strip()})
     return checks
 
 
 def runtime_check(repo: Path, runtime_test: Path) -> dict:
-    proc = run(["php", str(runtime_test)], repo)
+    proc = run([resolve_php(), str(runtime_test)], repo)
     if "PASS WordPress PHP runtime contract" not in proc.stdout:
         fail("PHP runtime contract did not emit its success marker")
     return {

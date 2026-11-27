@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 
+import json
+import subprocess
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -160,3 +163,38 @@ for prohibited in [
         raise SystemExit(1)
 
 print("PASS: gstack PREOS specialist routing, governed autoplan handoff, deterministic recovery routing and authority boundaries are present")
+
+ROUTE = ROOT / 'integration' / 'PASV2-SOURCE4-ROUTING.json'
+MANIFEST = ROOT / 'integration' / 'INTEGRATION-MANIFEST.json'
+for path in [ROUTE, MANIFEST]:
+    if not path.is_file():
+        print(f'FAIL: PAS v2 integration artifact missing: {path.relative_to(ROOT)}')
+        raise SystemExit(1)
+route = json.loads(ROUTE.read_text(encoding='utf-8'))
+manifest = json.loads(MANIFEST.read_text(encoding='utf-8'))
+pasv2 = manifest.get('production_assurance_suite_v2')
+if not pasv2:
+    print('FAIL: integration manifest missing production_assurance_suite_v2')
+    raise SystemExit(1)
+if pasv2.get('model2_activation') != 'blocked_pending_PREOS_MODEL2_CROSSWALK_APPROVAL':
+    print('FAIL: PAS v2 model2 activation boundary changed')
+    raise SystemExit(1)
+if 'do not create a second release gate authority' not in route.get('policy', ''):
+    print('FAIL: Source 4 routing policy must block second release authority')
+    raise SystemExit(1)
+for key in ['/prod-plan','/prod-risk','/prod-security','/prod-review','/prod-qa','/prod-release','/prod-learn']:
+    if key not in route.get('routes', {}):
+        print(f'FAIL: Source 4 route missing: {key}')
+        raise SystemExit(1)
+release_route = route['routes']['/prod-release']
+if 'human approval' not in release_route:
+    print('FAIL: /prod-release route must preserve human approval')
+    raise SystemExit(1)
+readme = (ROOT / 'README.md').read_text(encoding='utf-8')
+if 'https://github.com/garrytan/gstack.git' in readme:
+    print('FAIL: operational install docs still point at garrytan/gstack.git')
+    raise SystemExit(1)
+print('PASS: gstack PAS v2 Source 4 routing crosswalk present')
+compat = subprocess.run([sys.executable, str(ROOT / 'scripts' / 'validate-pasv2-compatibility.py')], cwd=ROOT)
+if compat.returncode:
+    raise SystemExit(compat.returncode)

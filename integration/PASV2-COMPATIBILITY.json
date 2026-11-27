@@ -1,0 +1,65 @@
+{
+    "schema_version":  "1.0",
+    "compatibility_version": "pasv2-implementation-first-v1",
+    "compatibility_id":  "pasv2-current-formal-closure-branch",
+    "binding_model":  "versioned compatibility manifest; no circular self-referential gstack commit hash",
+    "components":  {
+                       "blueprint":  {
+                                         "repository":  "WilsonMisor/wed_dev_skill",
+                                         "path":  "wed_dev_skill",
+                                         "ref":  "pasv2/final-residual-remediation",
+                                         "ref_kind":  "branch",
+                                         "required_validators":  [
+                                                                     "scripts/validate_blueprint.py",
+                                                                     "scripts/validate_source_semantics.py",
+                                                                     "scripts/build_codex_distribution.py --check"
+                                                                 ]
+                                     },
+                       "preos":  {
+                                     "repository":  "WilsonMisor/PREOS",
+                                     "path":  "PREOS",
+                                     "ref":  "pasv2/final-residual-remediation",
+                                     "ref_kind":  "branch",
+                                     "required_validators":  [
+                                                                 "scripts/validate-preos.py",
+                                                                 "scripts/validate-pasv2-remediation-artifacts.py"
+                                                             ]
+                                 },
+                       "gstack":  {
+                                      "repository":  "WilsonMisor/gstack",
+                                      "path":  "gstack",
+                                      "ref":  "workflow checkout SHA",
+                                      "ref_kind":  "self",
+                                      "required_validators":  [
+                                                                  "scripts/validate-preos-integration.py",
+                                                                  "scripts/validate-codex-project-contract-applicability.py",
+                                                                  "scripts/validate-three-repo-acceptance.py",
+                                                                  "scripts/validate-pasv2-compatibility.py"
+                                                              ]
+                                  }
+                   },
+    "acceptance_contracts":  [
+                                 "Blueprint-PREOS",
+                                 "Blueprint-gstack",
+                                 "PREOS-gstack",
+                                 "gstack-PREOS evidence",
+                                 "risk IDs",
+                                 "task packet schema",
+                                 "gates",
+                                 "lock",
+                                 "installer",
+                                 "Windows bounded install path",
+                                 "namespace",
+                                 "source manifest",
+                                 "risk/readiness validation"
+                             ],
+    "authority_boundary":  {
+                               "PREOS_MODEL2_CROSSWALK_APPROVAL":  "OPEN",
+                               "GSTACK_WINDOWS_BROAD_SUITE_BACKLOG_DISPOSITION":  "OPEN",
+                               "PRODUCTION_RELEASE_AUTHORITY":  "OPEN"
+                           },
+    "forbidden_legacy_pin_prefixes":  [
+                                          "0f81fb370",
+                                          "166bb377"
+                                      ]
+}

@@ -1,0 +1,56 @@
+{
+  "version": "1.0.0",
+  "principles": [
+    "Progressive disclosure",
+    "Router-first skills",
+    "On-demand sections for large review bodies",
+    "No whole-corpus loading for normal tasks",
+    "No duplicated large preambles across source templates"
+  ],
+  "budgets": {
+    "source_router_target_lines": 300,
+    "source_router_warning_lines": 500,
+    "source_router_hard_review_lines": 800,
+    "generated_skill_warning_lines": 800,
+    "generated_skill_hard_review_lines": 2200,
+    "section_warning_lines": 500,
+    "section_hard_review_lines": 1000,
+    "generated_autoplan_skeleton_hard_lines": 1250,
+    "source_autoplan_template_hard_lines": 300
+  },
+  "approved_exceptions": {
+    "setup-gbrain/SKILL.md.tmpl": "pre-existing oversized setup workflow; outside this package wave",
+    "land-and-deploy/SKILL.md.tmpl": "pre-existing oversized release workflow; outside this package wave",
+    "retro/SKILL.md.tmpl": "pre-existing oversized retrospective workflow; outside this package wave",
+    "codex/SKILL.md.tmpl": "pre-existing oversized Codex wrapper; outside this package wave"
+  },
+  "required_carves": {
+    "autoplan": {
+      "template": "autoplan/SKILL.md.tmpl",
+      "generated": "autoplan/SKILL.md",
+      "manifest": "autoplan/sections/manifest.json",
+      "sections": [
+        "review-phases.md"
+      ],
+      "source_template_max_lines": 300,
+      "generated_skeleton_max_lines": 1250,
+      "moved_markers": [
+        "## Phase 1: CEO Review (Strategy & Scope)",
+        "## Phase 4: Final Approval Gate",
+        "## Completion: Write Review Logs"
+      ],
+      "skeleton_markers": [
+        "## Important Rules",
+        "Sequential order",
+        "## Governed implementation handoff",
+        "gstack-preos-handoff"
+      ]
+    }
+  },
+  "enforcement": [
+    "CI measures source templates, generated primary SKILL.md files, and generated/template sections",
+    "Autoplan must remain carved into an on-demand section",
+    "Large pre-existing source routers require explicit policy exceptions",
+    "Selectors and skill routers must return bounded context unless a full audit is explicitly requested"
+  ]
+}

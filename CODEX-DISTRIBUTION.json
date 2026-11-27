@@ -1,0 +1,229 @@
+{
+  "schema_version": "1.0",
+  "repository": "WilsonMisor/gstack",
+  "component": "gstack-codex-skills",
+  "skills": [
+    {
+      "name": "autoplan",
+      "source_path": "codex-distribution/skills/autoplan"
+    },
+    {
+      "name": "benchmark",
+      "source_path": "codex-distribution/skills/benchmark"
+    },
+    {
+      "name": "benchmark-models",
+      "source_path": "codex-distribution/skills/benchmark-models"
+    },
+    {
+      "name": "browse",
+      "source_path": "codex-distribution/skills/browse"
+    },
+    {
+      "name": "canary",
+      "source_path": "codex-distribution/skills/canary"
+    },
+    {
+      "name": "careful",
+      "source_path": "codex-distribution/skills/careful"
+    },
+    {
+      "name": "claude",
+      "source_path": "codex-distribution/skills/claude"
+    },
+    {
+      "name": "context-restore",
+      "source_path": "codex-distribution/skills/context-restore"
+    },
+    {
+      "name": "context-save",
+      "source_path": "codex-distribution/skills/context-save"
+    },
+    {
+      "name": "cso",
+      "source_path": "codex-distribution/skills/cso"
+    },
+    {
+      "name": "design-consultation",
+      "source_path": "codex-distribution/skills/design-consultation"
+    },
+    {
+      "name": "design-html",
+      "source_path": "codex-distribution/skills/design-html"
+    },
+    {
+      "name": "design-review",
+      "source_path": "codex-distribution/skills/design-review"
+    },
+    {
+      "name": "design-shotgun",
+      "source_path": "codex-distribution/skills/design-shotgun"
+    },
+    {
+      "name": "devex-review",
+      "source_path": "codex-distribution/skills/devex-review"
+    },
+    {
+      "name": "diagram",
+      "source_path": "codex-distribution/skills/diagram"
+    },
+    {
+      "name": "document-generate",
+      "source_path": "codex-distribution/skills/document-generate"
+    },
+    {
+      "name": "document-release",
+      "source_path": "codex-distribution/skills/document-release"
+    },
+    {
+      "name": "freeze",
+      "source_path": "codex-distribution/skills/freeze"
+    },
+    {
+      "name": "gstack",
+      "source_path": "codex-distribution/skills/gstack",
+      "implicit_invocation": true
+    },
+    {
+      "name": "gstack-upgrade",
+      "source_path": "codex-distribution/skills/gstack-upgrade"
+    },
+    {
+      "name": "guard",
+      "source_path": "codex-distribution/skills/guard"
+    },
+    {
+      "name": "health",
+      "source_path": "codex-distribution/skills/health"
+    },
+    {
+      "name": "investigate",
+      "source_path": "codex-distribution/skills/investigate"
+    },
+    {
+      "name": "ios-clean",
+      "source_path": "codex-distribution/skills/ios-clean"
+    },
+    {
+      "name": "ios-design-review",
+      "source_path": "codex-distribution/skills/ios-design-review"
+    },
+    {
+      "name": "ios-fix",
+      "source_path": "codex-distribution/skills/ios-fix"
+    },
+    {
+      "name": "ios-qa",
+      "source_path": "codex-distribution/skills/ios-qa"
+    },
+    {
+      "name": "ios-sync",
+      "source_path": "codex-distribution/skills/ios-sync"
+    },
+    {
+      "name": "land-and-deploy",
+      "source_path": "codex-distribution/skills/land-and-deploy"
+    },
+    {
+      "name": "landing-report",
+      "source_path": "codex-distribution/skills/landing-report"
+    },
+    {
+      "name": "learn",
+      "source_path": "codex-distribution/skills/learn"
+    },
+    {
+      "name": "make-pdf",
+      "source_path": "codex-distribution/skills/make-pdf"
+    },
+    {
+      "name": "office-hours",
+      "source_path": "codex-distribution/skills/office-hours"
+    },
+    {
+      "name": "open-gstack-browser",
+      "source_path": "codex-distribution/skills/open-gstack-browser"
+    },
+    {
+      "name": "pair-agent",
+      "source_path": "codex-distribution/skills/pair-agent"
+    },
+    {
+      "name": "plan-ceo-review",
+      "source_path": "codex-distribution/skills/plan-ceo-review"
+    },
+    {
+      "name": "plan-design-review",
+      "source_path": "codex-distribution/skills/plan-design-review"
+    },
+    {
+      "name": "plan-devex-review",
+      "source_path": "codex-distribution/skills/plan-devex-review"
+    },
+    {
+      "name": "plan-eng-review",
+      "source_path": "codex-distribution/skills/plan-eng-review"
+    },
+    {
+      "name": "plan-tune",
+      "source_path": "codex-distribution/skills/plan-tune"
+    },
+    {
+      "name": "preos-handoff",
+      "source_path": "codex-distribution/skills/preos-handoff"
+    },
+    {
+      "name": "qa",
+      "source_path": "codex-distribution/skills/qa"
+    },
+    {
+      "name": "qa-only",
+      "source_path": "codex-distribution/skills/qa-only"
+    },
+    {
+      "name": "retro",
+      "source_path": "codex-distribution/skills/retro"
+    },
+    {
+      "name": "review",
+      "source_path": "codex-distribution/skills/review"
+    },
+    {
+      "name": "scrape",
+      "source_path": "codex-distribution/skills/scrape"
+    },
+    {
+      "name": "setup-browser-cookies",
+      "source_path": "codex-distribution/skills/setup-browser-cookies"
+    },
+    {
+      "name": "setup-deploy",
+      "source_path": "codex-distribution/skills/setup-deploy"
+    },
+    {
+      "name": "setup-gbrain",
+      "source_path": "codex-distribution/skills/setup-gbrain"
+    },
+    {
+      "name": "ship",
+      "source_path": "codex-distribution/skills/ship"
+    },
+    {
+      "name": "skillify",
+      "source_path": "codex-distribution/skills/skillify"
+    },
+    {
+      "name": "spec",
+      "source_path": "codex-distribution/skills/spec"
+    },
+    {
+      "name": "sync-gbrain",
+      "source_path": "codex-distribution/skills/sync-gbrain"
+    },
+    {
+      "name": "unfreeze",
+      "source_path": "codex-distribution/skills/unfreeze"
+    }
+  ],
+  "agents": []
+}

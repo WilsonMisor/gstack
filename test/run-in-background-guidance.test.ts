@@ -17,7 +17,7 @@ import * as path from 'path';
 
 const ROOT = path.resolve(import.meta.dir, '..');
 
-const GENERATED_WITH_GUIDANCE = ['review/SKILL.md', 'autoplan/SKILL.md'];
+const GENERATED_WITH_GUIDANCE = ['review/SKILL.md', 'autoplan/sections/review-phases.md'];
 
 // The inverted, post-2.1.198-inert phrasings. Checked across every generated
 // SKILL.md so the regression can't migrate to another skill unnoticed.
